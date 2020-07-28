@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Qt user config
+*.user
+
+# Qt Debug
+*-Debug/
