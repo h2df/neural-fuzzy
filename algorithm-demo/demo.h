@@ -7,10 +7,7 @@
 #define LEARNING_RATE 0.01
 #define HIDDEN_NODES_NUM 25
 
-struct PendulumData
-{
-    const double angle_input, pos_input, force;
-};
+
 
 class Node {
     double value;
@@ -33,15 +30,8 @@ class Link
 
 struct MembershipFunc
 {
-    enum MembershipType
-    {
-        Left,
-        Normal,
-        Right
-    };
     double center;
     double width;
-    MembershipType type;
 };
 
 class InputLink : public Link
