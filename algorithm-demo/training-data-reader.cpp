@@ -1,5 +1,4 @@
 #include "training-data-reader.h"
-#include <iostream>
 TrainingDataReader::TrainingDataReader() : min_angle_input(std::numeric_limits<double>::max()),
                                            max_angle_input(std::numeric_limits<double>::min()),
                                            min_pos_input(std::numeric_limits<double>::max()),

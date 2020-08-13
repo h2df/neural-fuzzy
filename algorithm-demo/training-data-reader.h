@@ -1,10 +1,8 @@
 #include <fstream>
 #include <limits>
 #include <vector>
+#include "pendulum-data.h"
 
-struct PendulumData {
-    const double angle_input, pos_input, output;
-};
 
 class TrainingDataReader {
     double min_angle_input, max_angle_input;
