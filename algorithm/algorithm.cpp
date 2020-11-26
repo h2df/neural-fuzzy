@@ -1,5 +1,13 @@
 #include "algorithm.h"
 
+void MemberFunc::SetCenter(double center_val) {
+    center = center_val;
+}
+
+void MemberFunc::SetWidth(double width_val) {
+    width = width_val;
+}
+
 double MemberFunc::CalcOutput(double input) {
     double output = 0;
     if ((center - width / 2) < input && input < (center + width / 2)) {
@@ -9,11 +17,11 @@ double MemberFunc::CalcOutput(double input) {
     return output;
 }
 
-void Rule::SetWeight(double new_weight) {
-    if (new_weight > 1 || new_weight < 0) {
+void Rule::SetWeight(double weight_val) {
+    if (weight_val > 1 || weight_val < 0) {
         throw "Invalid Weight";
     } else {
-        weight = new_weight;
+        weight = weight_val;
     }
 }
 
@@ -21,7 +29,7 @@ double Rule::CalcOutput(const std::vector<double>& inputs) {
     double output = 1.0;
     for (unsigned i = 0; i < inputs.size(); i++) {
         double input = inputs[i];
-        MemberFunc func = member_funcs[i];
+        MemberFunc& func = member_funcs[i];
         output *= func.CalcOutput(input);
     }
     last_output = output;
@@ -56,8 +64,11 @@ void NeuralNetwork::TrainOneIterate(std::vector<double>& inputs, double label) {
         if (rule.GetLastOutput() == 0) {
             continue;  //inactive rules should be skipped in this epoch's backpropagation
         }
-        for (MemberFunc func : rule.GetMemberFuncs()) {
-            double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / output - label) * (rule.GetWeight() - output) * (2 * sin(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
+        for (MemberFunc& func : rule.GetMemberFuncs()) {
+            double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / normalizer) * (output - label) * (rule.GetWeight() - output) * (2 * sin(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
+            func.SetCenter(new_center);
+            double new_width = func.GetWidth() - params.func_center_learning_rate * (rule.GetLastOutput()/ normalizer) * (output - label) * (rule.GetWeight()  - output) * (1 - func.GetLastOutput())/func.GetLastOutput() * (1/func.GetWidth());
+            func.SetWidth(new_width);
         }
     }
 };

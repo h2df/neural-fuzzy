@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
         0,
         25};
 
-    auto data = initialize_data("../train.dat", false, true);
+    auto data = initialize_data("../train.dat", true, true);
 
     NeuralNetwork nn = initialize_network(data, test_params);
 
@@ -28,5 +28,11 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    for (Rule& rule : nn.GetRules()) {
+        std::cout << "Rule Weight: " << rule.GetWeight() << std::endl;
+        for (MemberFunc& func : rule.GetMemberFuncs()) {
+            std::cout << "Center: " << func.GetCenter() << ", Width: " << func.GetWidth() << std::endl;
+        }
+    }
     return 0;
 }
