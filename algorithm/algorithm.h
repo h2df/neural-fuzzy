@@ -46,12 +46,11 @@ class Rule {
 
    public:
     Rule(std::vector<MemberFunc>& member_funcs) : member_funcs(member_funcs){};
-    Rule(){};
+    Rule() = default;
     double GetWeight() const { return weight; }
     void SetWeight(double weight_val);
     std::vector<MemberFunc>& GetMemberFuncs() { return member_funcs; }
     double GetLastOutput() { return last_output; }
-
     double CalcOutput(const std::vector<double>& inputs);
 };
 
@@ -59,17 +58,28 @@ class NeuralNetwork {
    private:
     std::vector<Rule> rules;
     double normalizer;
+
+   public:
+    NeuralNetwork() = default;
+    NeuralNetwork(std::vector<Rule> rules);
+    double GetNormalizer(){return normalizer;}
+    std::vector<Rule>& GetRules() { return rules; }
+    double CalcOutput(const std::vector<double>& inputs);
+};
+
+class NNTrainer {
+   private:
+    NeuralNetwork nn;
     NNParams params;
 
    public:
-    NeuralNetwork(std::vector<Rule>& rules, const NNParams& params);
-    std::vector<Rule>& GetRules() { return rules; }
-
-    double CalcOutput(const std::vector<double>& inputs);
-    void TrainOneIterate(std::vector<double>& inputs, double label);
+    NNTrainer() = default;
+    NNTrainer(const NNParams& params);
+    void InitializeNNFromData(const TrainingData& training_data);
+    void TrainOneIterate(const std::vector<double>& inputs, double label);
     double CalcError(const std::vector<double>& inputs, double label);
+    NeuralNetwork GetNN() {return nn;}
 };
 
 TrainingData initialize_data(const std::string training_data_f, bool shuffle, bool normalize);
-NeuralNetwork initialize_network(const TrainingData& training_data, const NNParams& params);
 std::vector<double> linspace(double start, double end, unsigned total_num);

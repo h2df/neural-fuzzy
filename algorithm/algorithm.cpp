@@ -36,6 +36,8 @@ double Rule::CalcOutput(const std::vector<double>& inputs) {
     return output;
 }
 
+NeuralNetwork::NeuralNetwork(std::vector<Rule> rules) : rules(rules) {}
+
 double NeuralNetwork::CalcOutput(const std::vector<double>& inputs) {
     double weighted_sum = 0;
     normalizer = 0;
@@ -47,34 +49,59 @@ double NeuralNetwork::CalcOutput(const std::vector<double>& inputs) {
     return weighted_sum / normalizer;
 };
 
-NeuralNetwork::NeuralNetwork(std::vector<Rule>& rules, const NNParams& params) : rules(rules), params(params) {
-    for (Rule& rule : rules) {
+NNTrainer::NNTrainer(const NNParams& params) : params(params) {}
+
+void NNTrainer::InitializeNNFromData(const TrainingData& training_data) {
+    unsigned function_num = (unsigned)sqrt(params.rule_num);
+
+    double pos_width = (training_data.max_pos - training_data.min_pos) / (function_num / 2.0);
+    std::vector<double> pos_centers = linspace(training_data.min_pos, training_data.max_pos, function_num);
+    double angle_width = (training_data.max_angle - training_data.min_angle) / (function_num / 2.0);
+    std::vector<double> angle_centers = linspace(training_data.min_angle, training_data.max_angle, function_num);
+
+    std::vector<Rule> rules(params.rule_num);
+    // rules.reserve(params.rule_num);
+
+    for (unsigned i = 0; i < params.rule_num; i++) {
+        unsigned j = i / function_num;
+        unsigned k = i % function_num;
+        MemberFunc pos_func = MemberFunc(pos_centers[j], pos_width);
+        MemberFunc angle_func = MemberFunc(pos_centers[k], angle_width);
+        std::vector<MemberFunc> funcs;
+        funcs.reserve(2);
+        funcs.emplace_back(pos_func);
+        funcs.emplace_back(angle_func);
+        Rule r = Rule(funcs);
+        rules[i] = r;
+    }
+    nn = NeuralNetwork(rules);
+    for (Rule& rule : nn.GetRules()) {
         rule.SetWeight(params.initial_rule_weight);
     }
-};
+}
 
-void NeuralNetwork::TrainOneIterate(std::vector<double>& inputs, double label) {
-    double output = CalcOutput(inputs);  //step 3 in paper
-    for (Rule& rule : rules) {
-        double new_weight = rule.GetWeight() - params.weight_learning_rate * (rule.GetLastOutput() / normalizer) * (output - label);
+void NNTrainer::TrainOneIterate(const std::vector<double>& inputs, double label) {
+    double output = nn.CalcOutput(inputs);  //step 3 in paper
+    for (Rule& rule : nn.GetRules()) {
+        double new_weight = rule.GetWeight() - params.weight_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label);
         rule.SetWeight(new_weight);  //step 4 in paper
     }
-    output = CalcOutput(inputs);  //step 5 in paper
-    for (Rule& rule : rules) {
+    output = nn.CalcOutput(inputs);  //step 5 in paper
+    for (Rule& rule : nn.GetRules()) {
         if (rule.GetLastOutput() == 0) {
             continue;  //inactive rules should be skipped in this epoch's backpropagation
         }
         for (MemberFunc& func : rule.GetMemberFuncs()) {
-            double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / normalizer) * (output - label) * (rule.GetWeight() - output) * (2 * sin(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
+            double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (2 * sin(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
             func.SetCenter(new_center);
-            double new_width = func.GetWidth() - params.func_center_learning_rate * (rule.GetLastOutput()/ normalizer) * (output - label) * (rule.GetWeight()  - output) * (1 - func.GetLastOutput())/func.GetLastOutput() * (1/func.GetWidth());
+            double new_width = func.GetWidth() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (1 - func.GetLastOutput()) / func.GetLastOutput() * (1 / func.GetWidth());
             func.SetWidth(new_width);
         }
     }
 };
 
-double NeuralNetwork::CalcError(const std::vector<double>& inputs, double label) {
-    double output = CalcOutput(inputs);
+double NNTrainer::CalcError(const std::vector<double>& inputs, double label) {
+    double output = nn.CalcOutput(inputs);
     return 0.5 * pow(output - label, 2);
 }
 
@@ -145,32 +172,6 @@ TrainingData initialize_data(const std::string training_data_f, bool shuffle, bo
         max_label,
         min_label,
         training_data};
-}
-
-NeuralNetwork initialize_network(const TrainingData& training_data, const NNParams& params) {
-    unsigned function_num = (unsigned)sqrt(params.rule_num);
-
-    double pos_width = (training_data.max_pos - training_data.min_pos) / (function_num / 2.0);
-    std::vector<double> pos_centers = linspace(training_data.min_pos, training_data.max_pos, function_num);
-    double angle_width = (training_data.max_angle - training_data.min_angle) / (function_num / 2.0);
-    std::vector<double> angle_centers = linspace(training_data.min_angle, training_data.max_angle, function_num);
-
-    std::vector<Rule> rules(params.rule_num);
-
-    for (unsigned i = 0; i < params.rule_num; i++) {
-        unsigned j = i / function_num;
-        unsigned k = i % function_num;
-        MemberFunc pos_func = MemberFunc(pos_centers[j], pos_width);
-        MemberFunc angle_func = MemberFunc(pos_centers[k], angle_width);
-        std::vector<MemberFunc> funcs;
-        funcs.reserve(2);
-        funcs.emplace_back(pos_func);
-        funcs.emplace_back(angle_func);
-        Rule r = Rule(funcs);
-        rules[i] = r;
-    }
-
-    return NeuralNetwork(rules, params);
 }
 
 std::vector<double> linspace(double start, double end, unsigned total_num) {
