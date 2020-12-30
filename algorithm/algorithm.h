@@ -71,15 +71,19 @@ class NNTrainer {
    private:
     NeuralNetwork nn;
     NNParams params;
+    void TrainOneIterate(const std::vector<double>& inputs, double label);
+    double CalcError(const std::vector<double>& inputs, double label);
 
    public:
     NNTrainer() = default;
     NNTrainer(const NNParams& params);
     void InitializeNNFromData(const TrainingData& training_data);
-    void TrainOneIterate(const std::vector<double>& inputs, double label);
-    double CalcError(const std::vector<double>& inputs, double label);
+    void TrainOneEpoch(TrainingData data);
+    double CalcAvgError(const std::vector<std::tuple<double, double, double>> test_data);
     NeuralNetwork GetNN() {return nn;}
 };
+
+double sgn (double val);
 
 TrainingData initialize_data(const std::string training_data_f, bool shuffle, bool normalize);
 std::vector<double> linspace(double start, double end, unsigned total_num);

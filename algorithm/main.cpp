@@ -9,26 +9,20 @@ int main(int argc, char *argv[]) {
         0,
         25};
 
-    auto data = initialize_data("../train.dat", true, true);
+    auto data = initialize_data("../train.dat", false, true);
 
     NNTrainer trainer = NNTrainer(test_params);
     trainer.InitializeNNFromData(data);
-    double THRESHOLD = 0.00001;
-    for (auto sample : data.training_data) {
-        std::vector<double> inputs;
-        inputs.reserve(2);
-        inputs.emplace_back(std::get<0>(sample));
-        inputs.emplace_back(std::get<1>(sample));
-        double label = std::get<2>(sample);
-        trainer.TrainOneIterate(inputs, label);
-        double error = trainer.CalcError(inputs, label);
-        std::cout << error << std::endl;
-        if (error < THRESHOLD) {
-            std::cout << "Trained successfully." << std::endl;
-            break;
-        }
-    }
+    const double THRESHOLD = 0.0001;
 
+    double error = 1;
+    do
+    {
+        trainer.TrainOneEpoch(data);
+        error = trainer.CalcAvgError(data.training_data);
+        std::cout << error << std::endl;
+    } while (error > THRESHOLD);
+    
     auto trained_rules = trainer.GetNN().GetRules();
     for (auto rule : trained_rules) {
         std::cout << "Rule Weight: " << rule.GetWeight() << std::endl;

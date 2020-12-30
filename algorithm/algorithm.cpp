@@ -18,11 +18,7 @@ double MemberFunc::CalcOutput(double input) {
 }
 
 void Rule::SetWeight(double weight_val) {
-    if (weight_val > 1 || weight_val < 0) {
-        throw "Invalid Weight";
-    } else {
-        weight = weight_val;
-    }
+    weight = weight_val;
 }
 
 double Rule::CalcOutput(const std::vector<double>& inputs) {
@@ -92,7 +88,7 @@ void NNTrainer::TrainOneIterate(const std::vector<double>& inputs, double label)
             continue;  //inactive rules should be skipped in this epoch's backpropagation
         }
         for (MemberFunc& func : rule.GetMemberFuncs()) {
-            double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (2 * sin(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
+            double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (2 * sgn(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
             func.SetCenter(new_center);
             double new_width = func.GetWidth() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (1 - func.GetLastOutput()) / func.GetLastOutput() * (1 / func.GetWidth());
             func.SetWidth(new_width);
@@ -100,9 +96,36 @@ void NNTrainer::TrainOneIterate(const std::vector<double>& inputs, double label)
     }
 };
 
+void NNTrainer::TrainOneEpoch(TrainingData data) {
+    for (auto sample : data.training_data) {
+        std::vector<double> inputs;
+        inputs.reserve(2);
+        inputs.emplace_back(std::get<0>(sample));
+        inputs.emplace_back(std::get<1>(sample));
+        double label = std::get<2>(sample);
+        TrainOneIterate(inputs, label);
+    }
+}
+
+
+
 double NNTrainer::CalcError(const std::vector<double>& inputs, double label) {
     double output = nn.CalcOutput(inputs);
     return 0.5 * pow(output - label, 2);
+}
+
+double NNTrainer::CalcAvgError(const std::vector<std::tuple<double, double, double>> test_data) {
+    double total_error = 0;
+    for (auto sample: test_data) {
+        std::vector<double> inputs;
+        inputs.reserve(2);
+        inputs.emplace_back(std::get<0>(sample));
+        inputs.emplace_back(std::get<1>(sample));
+        double label = std::get<2>(sample);
+        double error = CalcError(inputs, label);
+        total_error += error;
+    }
+    return total_error/test_data.size();
 }
 
 TrainingData initialize_data(const std::string training_data_f, bool shuffle, bool normalize) {
@@ -182,4 +205,9 @@ std::vector<double> linspace(double start, double end, unsigned total_num) {
     }
     result[total_num - 1] = end;  //to guarantee that the start and end is the same as given, required as float calculation is unprecise
     return result;
+}
+
+double sgn(double val) {
+    auto sign =  (0 < val) - (val < 0);
+    return (double)sign;
 }
