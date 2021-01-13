@@ -17,6 +17,7 @@ struct TrainingData {
 
 struct NNParams {
     double weight_learning_rate, func_center_learning_rate, func_width_learning_rate;
+    unsigned center_move_iterate;
     double initial_rule_weight;
     unsigned rule_num;
 };
@@ -71,7 +72,7 @@ class NNTrainer {
    private:
     NeuralNetwork nn;
     NNParams params;
-    void TrainOneIterate(const std::vector<double>& inputs, double label);
+    void TrainOneIterate(const std::vector<double>& inputs, double label, unsigned& iterate_count);
     double CalcError(const std::vector<double>& inputs, double label);
 
    public:
@@ -79,6 +80,7 @@ class NNTrainer {
     NNTrainer(const NNParams& params);
     void InitializeNNFromData(const TrainingData& training_data);
     void TrainOneEpoch(TrainingData data);
+    void AdjustLearningRates();
     double CalcAvgError(const std::vector<std::tuple<double, double, double>> test_data);
     NeuralNetwork GetNN() {return nn;}
 };

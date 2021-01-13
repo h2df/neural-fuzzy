@@ -62,7 +62,7 @@ void NNTrainer::InitializeNNFromData(const TrainingData& training_data) {
         unsigned j = i / function_num;
         unsigned k = i % function_num;
         MemberFunc pos_func = MemberFunc(pos_centers[j], pos_width);
-        MemberFunc angle_func = MemberFunc(pos_centers[k], angle_width);
+        MemberFunc angle_func = MemberFunc(angle_centers[k], angle_width);
         std::vector<MemberFunc> funcs;
         funcs.reserve(2);
         funcs.emplace_back(pos_func);
@@ -76,7 +76,7 @@ void NNTrainer::InitializeNNFromData(const TrainingData& training_data) {
     }
 }
 
-void NNTrainer::TrainOneIterate(const std::vector<double>& inputs, double label) {
+void NNTrainer::TrainOneIterate(const std::vector<double>& inputs, double label, unsigned& iterate_count) {
     double output = nn.CalcOutput(inputs);  //step 3 in paper
     for (Rule& rule : nn.GetRules()) {
         double new_weight = rule.GetWeight() - params.weight_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label);
@@ -88,26 +88,36 @@ void NNTrainer::TrainOneIterate(const std::vector<double>& inputs, double label)
             continue;  //inactive rules should be skipped in this epoch's backpropagation
         }
         for (MemberFunc& func : rule.GetMemberFuncs()) {
-            double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (2 * sgn(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
-            func.SetCenter(new_center);
+            if((iterate_count % params.center_move_iterate)== 0){
+               //std::cout << "\n\t\tAdjusting the centre parameter..." << std::endl; 
+               double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (2 * sgn(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
+               func.SetCenter(new_center);
+            }
+
             double new_width = func.GetWidth() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (1 - func.GetLastOutput()) / func.GetLastOutput() * (1 / func.GetWidth());
             func.SetWidth(new_width);
         }
     }
+    ++iterate_count;
 };
 
 void NNTrainer::TrainOneEpoch(TrainingData data) {
+    unsigned iterate_count = 0;
     for (auto sample : data.training_data) {
         std::vector<double> inputs;
         inputs.reserve(2);
         inputs.emplace_back(std::get<0>(sample));
         inputs.emplace_back(std::get<1>(sample));
         double label = std::get<2>(sample);
-        TrainOneIterate(inputs, label);
+        TrainOneIterate(inputs, label, iterate_count);
     }
 }
 
-
+// void NNTrainer::AdjustLearningRates(){
+//     params.weight_learning_rate = params.weight_learning_rate / 10.0;
+//     params.func_center_learning_rate = params.func_center_learning_rate / 10.0;
+//     params.func_width_learning_rate = params.func_width_learning_rate / 10.0;
+// }
 
 double NNTrainer::CalcError(const std::vector<double>& inputs, double label) {
     double output = nn.CalcOutput(inputs);
