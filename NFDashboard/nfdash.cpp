@@ -24,6 +24,7 @@ void NFDash::on_training_btn_clicked()
     unsigned rule_num;
     double error_threshold;
     unsigned max_epoch;
+    bool use_validation;
 
     weight_learning_rate = this->ui->rule_weight_lr_text->toPlainText().toDouble();
     func_center_learning_rate = this->ui->center_lr_text->toPlainText().toDouble();
@@ -33,6 +34,7 @@ void NFDash::on_training_btn_clicked()
     rule_num = this->ui->rule_num_combo->currentText().toUInt();
     error_threshold = this->ui->threshold_txt->toPlainText().toDouble();
     max_epoch = this->ui->max_epoch_txt->toPlainText().toUInt();
+    use_validation = this->ui->validation_checkbox->isChecked();
 
     NFTrainParams training_params = {
         weight_learning_rate, func_center_learning_rate, func_width_learning_rate,
@@ -40,7 +42,8 @@ void NFDash::on_training_btn_clicked()
         initial_rule_weight,
         rule_num,
         error_threshold,
-        max_epoch
+        max_epoch,
+        use_validation
     };
 
     std::string training_data_path = this->ui->training_data_text->toPlainText().toStdString();

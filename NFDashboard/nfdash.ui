@@ -20,7 +20,7 @@
       <x>10</x>
       <y>60</y>
       <width>1201</width>
-      <height>795</height>
+      <height>889</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,1,1,0,0,0,0,0,0,0" rowminimumheight="0,0,0,0,20,20,0,0,0,0,0,0,0">
@@ -111,16 +111,6 @@
       <widget class="QLabel" name="label_5">
        <property name="text">
         <string>Initial Rule Weight</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="2">
-      <widget class="QLabel" name="label_10">
-       <property name="text">
-        <string>Max Epoch (0 = no max epoch limit)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
        </property>
       </widget>
      </item>
@@ -242,13 +232,6 @@
        </property>
       </widget>
      </item>
-     <item row="8" column="4">
-      <widget class="QPlainTextEdit" name="max_epoch_txt">
-       <property name="plainText">
-        <string>300</string>
-       </property>
-      </widget>
-     </item>
      <item row="6" column="1">
       <widget class="QComboBox" name="rule_num_combo">
        <item>
@@ -324,8 +307,25 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item row="0" column="5">
-      <widget class="QCheckBox" name="checkBox">
+     <item row="9" column="0">
+      <widget class="QLabel" name="label_10">
+       <property name="text">
+        <string>Max Epoch (0 = no max epoch limit)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="1">
+      <widget class="QPlainTextEdit" name="max_epoch_txt">
+       <property name="plainText">
+        <string>300</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="2">
+      <widget class="QCheckBox" name="validation_checkbox">
        <property name="text">
         <string>Use validation data</string>
        </property>

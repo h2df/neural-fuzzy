@@ -47,7 +47,97 @@ double NFSystem::CalcOutput(const std::vector<double>& inputs) {
 
 NFTrainer::NFTrainer(const NFTrainParams& params) : params(params) {}
 
-void NFTrainer::InitializeNNFromData(const TrainingData& training_data) {
+void NFTrainer::InitializeData(const TrainingDataParams &data_params) {
+    std::ifstream training_f(data_params.training_data_path);
+    if (!training_f.is_open()) {
+        return;
+    }
+
+    double max_pos = std::numeric_limits<double>::min();
+    double min_pos = std::numeric_limits<double>::max();
+    double max_angle = std::numeric_limits<double>::min();
+    double min_angle = std::numeric_limits<double>::max();
+    double max_label = std::numeric_limits<double>::min();
+    double min_label = std::numeric_limits<double>::max();
+
+    double pos_input, angle_input, label;
+    unsigned count = 0;
+    while (training_f >> pos_input >> angle_input >> label) {
+        if (params.use_validation) {
+            //for the ease of implementation, 20% evenly sampled data will be used for validation
+            if ((count++ % 4) == 0) {
+                test_data.push_back(std::tuple<double, double, double>(pos_input, angle_input, label));
+                continue;
+            }
+        } else {
+            test_data.push_back(std::tuple<double, double, double>(pos_input, angle_input, label));
+        }
+
+        if (pos_input > max_pos) {
+            max_pos = pos_input;
+        }
+        if (pos_input < min_pos) {
+            min_pos = pos_input;
+        }
+        if (angle_input > max_angle) {
+            max_angle = angle_input;
+        }
+        if (angle_input < min_angle) {
+            min_angle = angle_input;
+        }
+        if (label > max_label) {
+            max_label = label;
+        }
+        if (label < min_label) {
+            min_label = label;
+        }
+        training_data.training_data.push_back(std::tuple<double, double, double>(pos_input, angle_input, label));
+    }
+
+    if (data_params.shuffle) {
+        std::random_shuffle(training_data.training_data.begin(), training_data.training_data.end());
+    }
+
+    if (data_params.normalize) {
+        for (unsigned i = 0; i < training_data.training_data.size(); i++) {
+            double pos = std::get<0>(training_data.training_data[i]);
+            double new_pos = (pos - min_pos) / (max_pos - min_pos);
+
+            double angle = std::get<1>(training_data.training_data[i]);
+            double new_angle = (angle - min_angle) / (max_angle - min_angle);
+
+            double label = std::get<2>(training_data.training_data[i]);
+            double new_label = (label - min_label) / (max_label - min_label);
+
+            training_data.training_data[i] = std::tuple<double, double, double>(new_pos, new_angle, new_label);
+        }
+
+        for (unsigned i = 0; i < test_data.size(); i++) {
+            double pos = std::get<0>(test_data[i]);
+            double new_pos = (pos - min_pos) / (max_pos - min_pos);
+
+            double angle = std::get<1>(test_data[i]);
+            double new_angle = (angle - min_angle) / (max_angle - min_angle);
+
+            double label = std::get<2>(test_data[i]);
+            double new_label = (label - min_label) / (max_label - min_label);
+
+            test_data[i] = std::tuple<double, double, double>(new_pos, new_angle, new_label);
+        }
+
+        min_pos = min_angle = min_label = 0;
+        max_pos = max_angle = max_label = 1;
+    }
+    training_data.valid = true;
+    training_data.max_pos = max_pos;
+    training_data.min_pos = min_pos;
+    training_data.max_angle = max_angle;
+    training_data.min_angle = min_angle;
+    training_data.max_label = max_label;
+    training_data.min_label = min_label;
+}
+
+void NFTrainer::InitializeNNFromData() {
     unsigned function_num = (unsigned)sqrt(params.rule_num);
 
     double pos_width = (training_data.max_pos - training_data.min_pos) / (function_num / 2.0);
@@ -89,9 +179,9 @@ void NFTrainer::TrainOneIterate(const std::vector<double>& inputs, double label,
         }
         for (MemberFunc& func : rule.GetMemberFuncs()) {
             if((iterate_count % params.center_move_iterate)== 0){
-               //std::cout << "\n\t\tAdjusting the centre parameter..." << std::endl; 
-               double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (2 * sgn(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
-               func.SetCenter(new_center);
+                //std::cout << "\n\t\tAdjusting the centre parameter..." << std::endl;
+                double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (2 * sgn(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
+                func.SetCenter(new_center);
             }
 
             double new_width = func.GetWidth() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (1 - func.GetLastOutput()) / func.GetLastOutput() * (1 / func.GetWidth());
@@ -101,9 +191,9 @@ void NFTrainer::TrainOneIterate(const std::vector<double>& inputs, double label,
     ++iterate_count;
 };
 
-void NFTrainer::TrainOneEpoch(TrainingData data) {
+void NFTrainer::TrainOneEpoch() {
     unsigned iterate_count = 0;
-    for (auto sample : data.training_data) {
+    for (auto sample : training_data.training_data) {
         std::vector<double> inputs;
         inputs.reserve(2);
         inputs.emplace_back(std::get<0>(sample));
@@ -125,7 +215,7 @@ double NFTrainer::CalcError(const std::vector<double>& inputs, double label) {
     return 0.5 * pow(output - label, 2);
 }
 
-double NFTrainer::CalcAvgError(const std::vector<std::tuple<double, double, double>> test_data) {
+double NFTrainer::CalcAvgError() {
     double total_error = 0;
     for (auto sample: test_data) {
         std::vector<double> inputs;
@@ -139,80 +229,12 @@ double NFTrainer::CalcAvgError(const std::vector<std::tuple<double, double, doub
     return total_error/test_data.size();
 }
 
-bool NFTrainer::ForceStopTraining() {
-    return params.max_epoch > 0 && (epoch_count > params.max_epoch);
+bool NFTrainer::HasTrainingDataReady() {
+    return training_data.valid;
 }
 
-TrainingData initialize_data(const TrainingDataParams& data_params) {
-    TrainingData data;
-    std::ifstream training_f(data_params.training_data_path);
-    if (!training_f.is_open()) {
-        data.valid = false;
-        return data;
-    }
-
-    std::vector<std::tuple<double, double, double>> training_data;
-    double max_pos = std::numeric_limits<double>::min();
-    double min_pos = std::numeric_limits<double>::max();
-    double max_angle = std::numeric_limits<double>::min();
-    double min_angle = std::numeric_limits<double>::max();
-    double max_label = std::numeric_limits<double>::min();
-    double min_label = std::numeric_limits<double>::max();
-
-    double pos_input, angle_input, label;
-    while (training_f >> pos_input >> angle_input >> label) {
-        if (pos_input > max_pos) {
-            max_pos = pos_input;
-        }
-        if (pos_input < min_pos) {
-            min_pos = pos_input;
-        }
-        if (angle_input > max_angle) {
-            max_angle = angle_input;
-        }
-        if (angle_input < min_angle) {
-            min_angle = angle_input;
-        }
-        if (label > max_label) {
-            max_label = label;
-        }
-        if (label < min_label) {
-            min_label = label;
-        }
-        training_data.push_back(std::tuple<double, double, double>(pos_input, angle_input, label));
-    }
-
-    if (data_params.shuffle) {
-        std::random_shuffle(training_data.begin(), training_data.end());
-    }
-
-    if (data_params.normalize) {
-        for (unsigned i = 0; i < training_data.size(); i++) {
-            double pos = std::get<0>(training_data[i]);
-            double new_pos = (pos - min_pos) / (max_pos - min_pos);
-
-            double angle = std::get<1>(training_data[i]);
-            double new_angle = (angle - min_angle) / (max_angle - min_angle);
-
-            double label = std::get<2>(training_data[i]);
-            double new_label = (label - min_label) / (max_label - min_label);
-
-            training_data[i] = std::tuple<double, double, double>(new_pos, new_angle, new_label);
-        }
-
-        min_pos = min_angle = min_label = 0;
-        max_pos = max_angle = max_label = 1;
-    }
-
-    data.valid = true;
-    data.max_pos = max_pos;
-    data.min_pos = min_pos;
-    data.max_angle = max_angle;
-    data.min_angle = min_angle;
-    data.max_label = max_label;
-    data.min_label = min_label;
-    data.training_data = training_data;
-    return data;
+bool NFTrainer::ForceStopTraining() {
+    return params.max_epoch > 0 && (epoch_count > params.max_epoch);
 }
 
 std::vector<double> linspace(double start, double end, unsigned total_num) {

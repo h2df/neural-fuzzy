@@ -11,7 +11,7 @@
 #include <vector>
 
 struct TrainingData {
-    bool valid;
+    bool valid = false;
     double max_pos, min_pos;
     double max_angle, min_angle;
     double max_label, min_label;
@@ -25,6 +25,7 @@ struct NFTrainParams {
     unsigned rule_num;
     double error_threshold;
     unsigned max_epoch;
+    bool use_validation;
 };
 
 struct TrainingDataParams {
@@ -82,6 +83,8 @@ class NFTrainer {
    private:
     NFSystem nn;
     NFTrainParams params;
+    TrainingData training_data;
+    std::vector<std::tuple<double, double, double>> test_data;
     unsigned epoch_count;
     void TrainOneIterate(const std::vector<double>& inputs, double label, unsigned& iterate_count);
     double CalcError(const std::vector<double>& inputs, double label);
@@ -89,9 +92,11 @@ class NFTrainer {
    public:
     NFTrainer() = default;
     NFTrainer(const NFTrainParams& params);
-    void InitializeNNFromData(const TrainingData& training_data);
-    void TrainOneEpoch(TrainingData data);
-    double CalcAvgError(const std::vector<std::tuple<double, double, double>> test_data);
+    void InitializeData(const TrainingDataParams& data_params);
+    void InitializeNNFromData();
+    void TrainOneEpoch();
+    double CalcAvgError();
+    bool HasTrainingDataReady();
     bool ForceStopTraining();
     NFSystem GetNN() {return nn;}
 };
