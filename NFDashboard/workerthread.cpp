@@ -7,12 +7,11 @@ WorkerThread::WorkerThread(QObject *parent, const NFTrainParams& params, const T
 
 void WorkerThread::run(){
     NFTrainer trainer = NFTrainer(_training_params);
-    trainer.InitializeData(_data_params);
+    trainer.Initialize(_data_params);
     if (!trainer.HasTrainingDataReady()) {
         emit warning("Invalid training data path: " + _data_params.training_data_path);
         return;
     }
-    trainer.InitializeNNFromData();
 
     double error = 0;//1;
     double prevError = 0;
@@ -29,7 +28,7 @@ void WorkerThread::run(){
 
         trainer.TrainOneEpoch();
         prevError = error;
-        error = trainer.CalcAvgError();
+        error = trainer.CalcValidationError();
         qDebug() << "\n\t" << error ;
         qDebug() << "---<< Epoch # " << epoch << " >>---" << ", Error difference = " << fabs(error - prevError);
 
