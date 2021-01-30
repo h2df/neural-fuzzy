@@ -9,6 +9,12 @@ NFDash::NFDash(QWidget *parent)
     qRegisterMetaType<std::string>();
     ui->setupUi(this);
     ui->warning_lb->setStyleSheet("color: red");
+    ui->plot->addGraph();
+    ui->plot->graph(0)->setScatterStyle(QCPScatterStyle::ssPlus);
+    ui->plot->graph(0)->setLineStyle(QCPGraph::lsLine);
+    ui->plot->xAxis->setLabel("Epoch");
+    ui->plot->yAxis->setLabel("Error");
+    ui->plot->setVisible(false);
 }
 
 NFDash::~NFDash()
@@ -18,6 +24,9 @@ NFDash::~NFDash()
 
 void NFDash::on_training_btn_clicked()
 {
+    clearPlot();
+    ui->plot->setVisible(true);
+
     double weight_learning_rate, func_center_learning_rate, func_width_learning_rate;
     unsigned center_move_iterate;
     double initial_rule_weight;
@@ -48,27 +57,42 @@ void NFDash::on_training_btn_clicked()
 
     std::string training_data_path = this->ui->training_data_text->toPlainText().toStdString();
     bool shuffle = this->ui->shuffle_checkbox->isChecked();
-    bool normalize = this->ui->normalize_checkbox->isChecked();
     TrainingDataParams training_data_params = {
         training_data_path,
-        shuffle, normalize
-    };
-
-
-
+        shuffle
+    };    
 
     worker = new WorkerThread(this, training_params, training_data_params);
-    connect(worker, SIGNAL(train_nf(double)), this, SLOT(onTrainNF(double)));
+    connect(worker, SIGNAL(train_nf(double, unsigned)), this, SLOT(onTrainNF(double, unsigned)));
     connect(worker, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
     this->worker->start();
 }
 
-void NFDash::onTrainNF(double error) {
-    this->ui->error_txt->setText(QString::number(error));
+void NFDash::onTrainNF(double error, unsigned epoch) {
+    this->ui->error_lb->setText("Epoch: " + QString::number(epoch) + ", Error: " + QString::number(error));
+    errors.append(error);
+    epochs.append((double)epoch);
+    plot();
 }
 
 void NFDash::onWarning(std::string warning){
     this->ui->warning_lb->setText(QString::fromStdString(warning));
     QTimer::singleShot(2000, [&](){ ui->warning_lb->setText("   ");});
+}
+
+void NFDash::plot() {
+    ui->plot->graph(0)->setData(epochs, errors);
+    ui->plot->yAxis->setRangeUpper(errors[0]);
+    ui->plot->xAxis->setRangeUpper(epochs.size());
+    ui->plot->replot();
+    ui->plot->update();
+}
+
+void NFDash::clearPlot() {
+    errors.clear();
+    epochs.clear();
+    ui->plot->graph(0)->setData(epochs, errors);
+    ui->plot->replot();
+    ui->plot->update();
 }
 

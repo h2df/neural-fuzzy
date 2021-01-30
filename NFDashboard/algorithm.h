@@ -12,9 +12,6 @@
 
 struct TrainingData {
     bool valid = false;
-    double max_pos, min_pos;
-    double max_angle, min_angle;
-    double max_label, min_label;
     std::vector<std::tuple<double, double, double>> training_data;
 };
 
@@ -30,7 +27,7 @@ struct NFTrainParams {
 
 struct TrainingDataParams {
     std::string training_data_path;
-    bool shuffle, normalize;
+    bool shuffle;
 };
 
 class MemberFunc {

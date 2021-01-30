@@ -14,7 +14,7 @@ public:
     void run() override;
 signals:
     void warning(std::string);
-    void train_nf(double error);
+    void train_nf(double error, unsigned epoch);
 };
 
 #endif // WORKERTHREAD_H

@@ -40,7 +40,7 @@ void WorkerThread::run(){
         // }
 
         epoch++;
-        emit train_nf(error);
+        emit train_nf(error, epoch);
 
     } while (error > _training_params.error_threshold);
 }

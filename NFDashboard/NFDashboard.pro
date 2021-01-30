@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -19,11 +19,13 @@ SOURCES += \
     algorithm.cpp\
     main.cpp \
     nfdash.cpp \
+    qcustomplot.cpp \
     workerthread.cpp
 
 HEADERS += \
     algorithm.h\
     nfdash.h \
+    qcustomplot.h \
     workerthread.h
 
 FORMS += \
