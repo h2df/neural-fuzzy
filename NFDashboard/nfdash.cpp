@@ -65,6 +65,7 @@ void NFDash::on_training_btn_clicked()
     worker = new WorkerThread(this, training_params, training_data_params);
     connect(worker, SIGNAL(train_nf(double, unsigned)), this, SLOT(onTrainNF(double, unsigned)));
     connect(worker, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
+    connect(worker, SIGNAL(beyond_epoch_limit(unsigned)), this, SLOT(onBeyondEpochLimit(unsigned)));
     this->worker->start();
 }
 
@@ -78,6 +79,11 @@ void NFDash::onTrainNF(double error, unsigned epoch) {
 void NFDash::onWarning(std::string warning){
     this->ui->warning_lb->setText(QString::fromStdString(warning));
     QTimer::singleShot(2000, [&](){ ui->warning_lb->setText("   ");});
+}
+
+void NFDash::onBeyondEpochLimit(unsigned epoch)
+{
+    onWarning(std::to_string(epoch) + " epochs is beyond the limit " + ui->max_epoch_txt->toPlainText().toStdString() + ". Training is unsuccessful.");
 }
 
 void NFDash::plot() {

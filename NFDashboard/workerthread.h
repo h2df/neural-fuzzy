@@ -14,6 +14,7 @@ public:
     void run() override;
 signals:
     void warning(std::string);
+    void beyond_epoch_limit(unsigned);
     void train_nf(double error, unsigned epoch);
 };
 

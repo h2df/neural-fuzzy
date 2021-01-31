@@ -83,11 +83,12 @@ class NFTrainer {
     NFTrainParams params;
     TrainingData training_data;
     std::vector<std::tuple<double, double, double>> validation_data;
-    unsigned epoch_count;
     void TrainOneIterate(const std::vector<double>& inputs, double label, unsigned& iterate_count);
     double CalcError(const std::vector<double>& inputs, double label);
 
    public:
+    unsigned epoch_count;
+
     NFTrainer() = default;
     NFTrainer(const NFTrainParams& params);
     void Initialize(const TrainingDataParams& data_params);

@@ -25,6 +25,7 @@ private slots:
     void on_training_btn_clicked();
     void onTrainNF(double, unsigned);
     void onWarning(std::string);
+    void onBeyondEpochLimit(unsigned);
 private:
     Ui::NFDash *ui;
     QVector<double> errors;
