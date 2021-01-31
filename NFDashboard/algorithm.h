@@ -22,7 +22,7 @@ struct NFTrainParams {
     unsigned rule_num;
     double error_threshold;
     unsigned max_epoch;
-    bool use_validation;
+    double validation_factor;
 };
 
 struct TrainingDataParams {
@@ -93,6 +93,7 @@ class NFTrainer {
     NFTrainer(const NFTrainParams& params);
     void Initialize(const TrainingDataParams& data_params);
     void TrainOneEpoch();
+    double CalcTrainingError();
     double CalcValidationError();
     bool HasTrainingDataReady();
     bool ForceStopTraining();

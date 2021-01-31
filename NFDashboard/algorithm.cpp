@@ -89,14 +89,10 @@ void NFTrainer::Initialize(const TrainingDataParams &data_params) {
     double pos_input, angle_input, label;
     unsigned count = 0;
     while (training_f >> pos_input >> angle_input >> label) {
-        if (params.use_validation) {
-            //for the ease of implementation, 20% evenly sampled data will be used for validation
-            if ((count++ % 4) == 0) {
-                validation_data.push_back(std::tuple<double, double, double>(pos_input, angle_input, label));
-                continue;
-            }
-        } else {
+        count = (count + 1) % 10;
+        if ((count > (1 - params.validation_factor) * 10)) {//e.g. if user set validation_factor to be 0.2, every 2 out of 10 samples will be used for validation
             validation_data.push_back(std::tuple<double, double, double>(pos_input, angle_input, label));
+            continue;
         }
 
         if (pos_input > max_pos) {
@@ -218,6 +214,20 @@ double NFTrainer::CalcValidationError() {
         total_error += error;
     }
     return total_error/validation_data.size();
+}
+
+double NFTrainer::CalcTrainingError() {
+    double total_error = 0;
+    for (auto sample: training_data.training_data) {
+        std::vector<double> inputs;
+        inputs.reserve(2);
+        inputs.emplace_back(std::get<0>(sample));
+        inputs.emplace_back(std::get<1>(sample));
+        double label = std::get<2>(sample);
+        double error = CalcError(inputs, label);
+        total_error += error;
+    }
+    return total_error/training_data.training_data.size();
 }
 
 bool NFTrainer::HasTrainingDataReady() {

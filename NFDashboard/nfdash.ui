@@ -18,61 +18,42 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>30</y>
+      <y>90</y>
       <width>1201</width>
-      <height>471</height>
+      <height>441</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0">
-     <item row="3" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-      <widget class="QLabel" name="label_3">
+     <item row="2" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+      <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Membership Function Center Learning Iterate</string>
+        <string>Membership Function Center Learning Rate</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="QPlainTextEdit" name="training_data_text">
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>41</height>
-        </size>
-       </property>
-       <property name="plainText">
-        <string>C:\Users\zhang\Desktop\159333Data\poly.dat</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QTextEdit" name="center_lr_text">
-       <property name="html">
-        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;0.0001&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
+     <item row="5" column="1">
+      <widget class="QComboBox" name="rule_num_combo">
+       <item>
+        <property name="text">
+         <string>25</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>36</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item row="6" column="0" alignment="Qt::AlignHCenter">
       <widget class="QLabel" name="label_5">
        <property name="text">
         <string>Initial Rule Weight</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>Rule Number</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <widget class="QPlainTextEdit" name="max_epoch_txt">
-       <property name="plainText">
-        <string>300</string>
        </property>
       </widget>
      </item>
@@ -97,6 +78,81 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_9">
+       <property name="text">
+        <string>Error Threshold</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Membership Function Width Learning Rate</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>Training Data</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="5">
+      <widget class="QLabel" name="error_lb">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QCheckBox" name="shuffle_checkbox">
+       <property name="text">
+        <string>Shuffle</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Membership Function Center Learning Iterate</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QPlainTextEdit" name="width_lr_text">
+       <property name="plainText">
+        <string>0.0001</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QPlainTextEdit" name="training_data_text">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>41</height>
+        </size>
+       </property>
+       <property name="plainText">
+        <string>C:\Users\zhang\Desktop\159333Data\poly.dat</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QPlainTextEdit" name="rule_weight_lr_text">
+       <property name="plainText">
+        <string>0.0001</string>
+       </property>
+      </widget>
+     </item>
      <item row="9" column="1">
       <spacer name="verticalSpacer">
        <property name="orientation">
@@ -113,20 +169,47 @@ p, li { white-space: pre-wrap; }
        </property>
       </spacer>
      </item>
-     <item row="0" column="2">
-      <widget class="QCheckBox" name="shuffle_checkbox">
+     <item row="11" column="1">
+      <widget class="QPushButton" name="training_btn">
        <property name="text">
-        <string>Shuffle</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
+        <string>Start Training</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
-      <widget class="QPlainTextEdit" name="width_lr_text">
+     <item row="8" column="1">
+      <widget class="QPlainTextEdit" name="max_epoch_txt">
        <property name="plainText">
-        <string>0.0001</string>
+        <string>300</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1">
+      <widget class="QPlainTextEdit" name="threshold_txt">
+       <property name="plainText">
+        <string>0.0005</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2" rowspan="6" colspan="4">
+      <widget class="QCustomPlot" name="plot" native="true"/>
+     </item>
+     <item row="0" column="4">
+      <widget class="QDoubleSpinBox" name="validation_factor_spin">
+       <property name="maximum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.200000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Rule Number</string>
        </property>
       </widget>
      </item>
@@ -137,13 +220,6 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="1">
-      <widget class="QPlainTextEdit" name="threshold_txt">
-       <property name="plainText">
-        <string>0.0005</string>
        </property>
       </widget>
      </item>
@@ -223,14 +299,7 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item row="4" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Membership Function Width Learning Rate</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="3">
+     <item row="0" column="5">
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -243,13 +312,6 @@ p, li { white-space: pre-wrap; }
        </property>
       </spacer>
      </item>
-     <item row="0" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-      <widget class="QLabel" name="label_7">
-       <property name="text">
-        <string>Training Data</string>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
       <widget class="QLabel" name="label">
        <property name="text">
@@ -257,75 +319,23 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QPlainTextEdit" name="rule_weight_lr_text">
-       <property name="plainText">
-        <string>0.0001</string>
+     <item row="2" column="1">
+      <widget class="QTextEdit" name="center_lr_text">
+       <property name="html">
+        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;0.0001&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="2">
-      <widget class="QCheckBox" name="validation_checkbox">
+     <item row="0" column="3">
+      <widget class="QLabel" name="label_8">
        <property name="text">
-        <string>Use validation data</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
+        <string>Proportion of validation data: </string>
        </property>
       </widget>
-     </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="label_9">
-       <property name="text">
-        <string>Error Threshold</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Membership Function Center Learning Rate</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QComboBox" name="rule_num_combo">
-       <item>
-        <property name="text">
-         <string>25</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>16</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>36</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="6" column="3">
-      <widget class="QLabel" name="error_lb">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="1">
-      <widget class="QPushButton" name="training_btn">
-       <property name="text">
-        <string>Start Training</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="2" rowspan="5" colspan="2">
-      <widget class="QCustomPlot" name="plot" native="true"/>
      </item>
     </layout>
    </widget>

@@ -13,8 +13,9 @@ void WorkerThread::run(){
         return;
     }
 
-    double error = 0;//1;
-    double prevError = 0;
+    double training_error = 1.0;
+    double validation_error = 1.0;
+    double prev_validation_error = 0;
 
     qDebug() << "============================================" ;
     qDebug() << "Training begins... ";
@@ -26,10 +27,11 @@ void WorkerThread::run(){
         }
 
         trainer.TrainOneEpoch();
-        prevError = error;
-        error = trainer.CalcValidationError();
-        qDebug() << "\n\t" << error ;
-        qDebug() << "---<< Epoch # " << trainer.epoch_count << " >>---" << ", Error difference = " << fabs(error - prevError);
+        training_error = trainer.CalcTrainingError();
+        prev_validation_error = validation_error;
+        validation_error = trainer.CalcValidationError();
+        qDebug() << "\n\t" << validation_error ;
+        qDebug() << "---<< Epoch # " << trainer.epoch_count << " >>---" << ", Error difference = " << fabs(validation_error - prev_validation_error);
 
 
         //let user adjust learning rate manually to be consistent with other hyper parameters
@@ -38,7 +40,7 @@ void WorkerThread::run(){
         //     trainer.AdjustLearningRates();
         // }
 
-        emit train_nf(error, trainer.epoch_count);
+        emit train_nf(training_error, validation_error, trainer.epoch_count);
 
-    } while (error > _training_params.error_threshold);
+    } while (validation_error > _training_params.error_threshold);
 }

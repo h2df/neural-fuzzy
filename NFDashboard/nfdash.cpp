@@ -9,9 +9,20 @@ NFDash::NFDash(QWidget *parent)
     qRegisterMetaType<std::string>();
     ui->setupUi(this);
     ui->warning_lb->setStyleSheet("color: red");
-    ui->plot->addGraph();
+    ui->plot->addGraph();//for training error
+    ui->plot->addGraph();//for validation error
     ui->plot->graph(0)->setScatterStyle(QCPScatterStyle::ssPlus);
+    ui->plot->graph(0)->setName("Training Error");
     ui->plot->graph(0)->setLineStyle(QCPGraph::lsLine);
+    ui->plot->graph(1)->setScatterStyle(QCPScatterStyle::ssPlus);
+    ui->plot->graph(1)->setLineStyle(QCPGraph::lsLine);
+    ui->plot->graph(1)->setName("Validation Error");
+    ui->plot->legend->setVisible(true);
+
+    QPen pen;
+    pen.setColor(QColor(255, 0, 0));
+    ui->plot->graph(1)->setPen(pen);
+
     ui->plot->xAxis->setLabel("Epoch");
     ui->plot->yAxis->setLabel("Error");
     ui->plot->setVisible(false);
@@ -33,7 +44,7 @@ void NFDash::on_training_btn_clicked()
     unsigned rule_num;
     double error_threshold;
     unsigned max_epoch;
-    bool use_validation;
+    double validation_factor;
 
     weight_learning_rate = this->ui->rule_weight_lr_text->toPlainText().toDouble();
     func_center_learning_rate = this->ui->center_lr_text->toPlainText().toDouble();
@@ -43,7 +54,7 @@ void NFDash::on_training_btn_clicked()
     rule_num = this->ui->rule_num_combo->currentText().toUInt();
     error_threshold = this->ui->threshold_txt->toPlainText().toDouble();
     max_epoch = this->ui->max_epoch_txt->toPlainText().toUInt();
-    use_validation = this->ui->validation_checkbox->isChecked();
+    validation_factor = this->ui->validation_factor_spin->value();
 
     NFTrainParams training_params = {
         weight_learning_rate, func_center_learning_rate, func_width_learning_rate,
@@ -52,7 +63,7 @@ void NFDash::on_training_btn_clicked()
         rule_num,
         error_threshold,
         max_epoch,
-        use_validation
+        validation_factor
     };
 
     std::string training_data_path = this->ui->training_data_text->toPlainText().toStdString();
@@ -63,16 +74,17 @@ void NFDash::on_training_btn_clicked()
     };    
 
     worker = new WorkerThread(this, training_params, training_data_params);
-    connect(worker, SIGNAL(train_nf(double, unsigned)), this, SLOT(onTrainNF(double, unsigned)));
+    connect(worker, SIGNAL(train_nf(double, double, unsigned)), this, SLOT(onTrainNF(double, double, unsigned)));
     connect(worker, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
     connect(worker, SIGNAL(beyond_epoch_limit(unsigned)), this, SLOT(onBeyondEpochLimit(unsigned)));
     this->worker->start();
 }
 
-void NFDash::onTrainNF(double error, unsigned epoch) {
-    this->ui->error_lb->setText("Epoch: " + QString::number(epoch) + ", Error: " + QString::number(error));
-    errors.append(error);
-    epochs.append((double)epoch);
+void NFDash::onTrainNF(double training_error, double validation_error, unsigned epoch) {
+    this->ui->error_lb->setText("Epoch: " + QString::number(epoch) + ", Training Error: " + QString::number(training_error) + ", Validation Error: " + QString::number(validation_error));
+    training_errors.append(training_error);
+    validation_errors.append(validation_error);
+    epochs.append(double (epoch));
     plot();
 }
 
@@ -87,17 +99,21 @@ void NFDash::onBeyondEpochLimit(unsigned epoch)
 }
 
 void NFDash::plot() {
-    ui->plot->graph(0)->setData(epochs, errors);
-    ui->plot->yAxis->setRangeUpper(errors[0]);
+    ui->plot->graph(0)->setData(epochs, training_errors);
+    ui->plot->graph(1)->setData(epochs, validation_errors);
+    unsigned idx = validation_errors.size() / 30 * 29;
+    ui->plot->yAxis->setRangeUpper(validation_errors[idx]);
     ui->plot->xAxis->setRangeUpper(epochs.size());
     ui->plot->replot();
     ui->plot->update();
 }
 
 void NFDash::clearPlot() {
-    errors.clear();
+    training_errors.clear();
+    validation_errors.clear();
     epochs.clear();
-    ui->plot->graph(0)->setData(epochs, errors);
+    ui->plot->graph(0)->setData(epochs, training_errors);
+    ui->plot->graph(1)->setData(epochs, validation_errors);
     ui->plot->replot();
     ui->plot->update();
 }
