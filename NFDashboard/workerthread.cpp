@@ -23,15 +23,16 @@ void WorkerThread::run(){
     {
         if (trainer.ForceStopTraining()) {
             emit beyond_epoch_limit(trainer.epoch_count);
-            break;
+            return;
         }
 
         trainer.TrainOneEpoch();
         training_error = trainer.CalcTrainingError();
         prev_validation_error = validation_error;
         validation_error = trainer.CalcValidationError();
-        qDebug() << "\n\t" << validation_error ;
-        qDebug() << "---<< Epoch # " << trainer.epoch_count << " >>---" << ", Error difference = " << fabs(validation_error - prev_validation_error);
+        qDebug() << "\n\t Training Error: " << training_error;
+        qDebug() << "\n\t Validation Error: " << validation_error ;
+        qDebug() << "---<< Epoch # " << trainer.epoch_count << " >>---" << ", validation error difference = " << fabs(validation_error - prev_validation_error);
 
 
         //let user adjust learning rate manually to be consistent with other hyper parameters
@@ -43,4 +44,6 @@ void WorkerThread::run(){
         emit train_nf(training_error, validation_error, trainer.epoch_count);
 
     } while (validation_error > _training_params.error_threshold);
+
+    emit train_success(training_error, validation_error, trainer.epoch_count);
 }

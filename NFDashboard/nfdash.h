@@ -5,6 +5,7 @@
 #include "workerthread.h"
 #include "algorithm.h"
 #include <QtDebug>
+#include <QFileDialog>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class NFDash; }
@@ -26,6 +27,9 @@ private slots:
     void onTrainNF(double, double, unsigned);
     void onWarning(std::string);
     void onBeyondEpochLimit(unsigned);
+    void on_ld_training_data_btn_clicked();
+    void onTrainSuccess(double, double, unsigned);
+
 private:
     Ui::NFDash *ui;
     QVector<double> validation_errors;

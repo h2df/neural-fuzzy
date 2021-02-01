@@ -46,14 +46,14 @@ void NFDash::on_training_btn_clicked()
     unsigned max_epoch;
     double validation_factor;
 
-    weight_learning_rate = this->ui->rule_weight_lr_text->toPlainText().toDouble();
-    func_center_learning_rate = this->ui->center_lr_text->toPlainText().toDouble();
-    func_width_learning_rate = this->ui->width_lr_text->toPlainText().toDouble();
-    center_move_iterate = this->ui->center_iterate_text->toPlainText().toUInt();
+    weight_learning_rate = this->ui->rule_weight_lr_spin->value();
+    func_center_learning_rate = this->ui->func_center_lr_spin->value();
+    func_width_learning_rate = this->ui->func_width_lr_spin->value();
+    center_move_iterate = this->ui->func_center_iterate_spin->value();
     initial_rule_weight = this->ui->ini_rule_weight_combo->currentText().toDouble();
     rule_num = this->ui->rule_num_combo->currentText().toUInt();
-    error_threshold = this->ui->threshold_txt->toPlainText().toDouble();
-    max_epoch = this->ui->max_epoch_txt->toPlainText().toUInt();
+    error_threshold = this->ui->error_threshold_spin->value();
+    max_epoch = this->ui->max_epoch_spin->value();
     validation_factor = this->ui->validation_factor_spin->value();
 
     NFTrainParams training_params = {
@@ -66,7 +66,7 @@ void NFDash::on_training_btn_clicked()
         validation_factor
     };
 
-    std::string training_data_path = this->ui->training_data_text->toPlainText().toStdString();
+    std::string training_data_path = ui->training_data_path_lb->text().toStdString();
     bool shuffle = this->ui->shuffle_checkbox->isChecked();
     TrainingDataParams training_data_params = {
         training_data_path,
@@ -77,6 +77,7 @@ void NFDash::on_training_btn_clicked()
     connect(worker, SIGNAL(train_nf(double, double, unsigned)), this, SLOT(onTrainNF(double, double, unsigned)));
     connect(worker, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
     connect(worker, SIGNAL(beyond_epoch_limit(unsigned)), this, SLOT(onBeyondEpochLimit(unsigned)));
+    connect(worker, SIGNAL(train_success(double, double, unsigned)), this,  SLOT(onTrainSuccess(double, double, unsigned)));
     this->worker->start();
 }
 
@@ -95,13 +96,13 @@ void NFDash::onWarning(std::string warning){
 
 void NFDash::onBeyondEpochLimit(unsigned epoch)
 {
-    onWarning(std::to_string(epoch) + " epochs is beyond the limit " + ui->max_epoch_txt->toPlainText().toStdString() + ". Training is unsuccessful.");
+    onWarning(std::to_string(epoch) + " epochs is beyond the limit " + std::to_string(ui->max_epoch_spin->value()) + ". Training is unsuccessful.");
 }
 
 void NFDash::plot() {
     ui->plot->graph(0)->setData(epochs, training_errors);
     ui->plot->graph(1)->setData(epochs, validation_errors);
-    unsigned idx = validation_errors.size() / 30 * 29;
+    unsigned idx = validation_errors.size() / 50 * 49;
     ui->plot->yAxis->setRangeUpper(validation_errors[idx]);
     ui->plot->xAxis->setRangeUpper(epochs.size());
     ui->plot->replot();
@@ -118,3 +119,14 @@ void NFDash::clearPlot() {
     ui->plot->update();
 }
 
+
+void NFDash::on_ld_training_data_btn_clicked()
+{
+    QString fn = QFileDialog::getOpenFileName(this, "Open training data file", "C:\\Users\\zhang\\Desktop\\159333Data");
+    ui->training_data_path_lb->setText(fn);
+}
+
+void NFDash::onTrainSuccess(double training_error, double validation_error, unsigned epoch)
+{
+    ui->error_lb->setText("Successfully trained after " + QString::number(epoch) + " epochs. The average error on training data is " + QString::number(training_error) + " and the average error on validation data is " + QString::number(validation_error));
+}
