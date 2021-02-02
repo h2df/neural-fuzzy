@@ -71,7 +71,7 @@ double NFSystem::CalcOutput(const std::vector<double>& inputs) {
     return weighted_sum / normalizer;
 };
 
-NFTrainer::NFTrainer(const NFTrainParams& params) : params(params) {}
+NFTrainer::NFTrainer(const NFTrainParams& params) : params(params), epoch_count(0) {}
 
 void NFTrainer::Initialize(const TrainingDataParams &data_params) {
     std::ifstream training_f(data_params.training_data_path);
