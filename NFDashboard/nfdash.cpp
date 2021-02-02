@@ -126,7 +126,15 @@ void NFDash::on_ld_training_data_btn_clicked()
     ui->training_data_path_lb->setText(fn);
 }
 
+void NFDash::scaleBackPlot()
+{
+    ui->plot->yAxis->setRangeUpper(validation_errors[0]);
+    ui->plot->replot();
+    ui->plot->update();
+}
+
 void NFDash::onTrainSuccess(double training_error, double validation_error, unsigned epoch)
 {
+    scaleBackPlot();
     ui->error_lb->setText("Successfully trained after " + QString::number(epoch) + " epochs. The average error on training data is " + QString::number(training_error) + " and the average error on validation data is " + QString::number(validation_error));
 }

@@ -38,5 +38,6 @@ private:
 
     void plot();
     void clearPlot();
+    void scaleBackPlot();
 };
 #endif // NFDASH_H
