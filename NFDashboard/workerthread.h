@@ -16,7 +16,7 @@ signals:
     void warning(std::string);
     void beyond_epoch_limit(unsigned);
     void train_nf(double, double, unsigned);
-    void train_success(double, double, unsigned);
+    void train_success(double, double, unsigned, std::string);
 };
 
 #endif // WORKERTHREAD_H

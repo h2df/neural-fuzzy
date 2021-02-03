@@ -28,7 +28,7 @@ private slots:
     void onWarning(std::string);
     void onBeyondEpochLimit(unsigned);
     void on_ld_training_data_btn_clicked();
-    void onTrainSuccess(double, double, unsigned);
+    void onTrainSuccess(double, double, unsigned, std::string);
 
 private:
     Ui::NFDash *ui;

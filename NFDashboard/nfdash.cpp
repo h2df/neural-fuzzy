@@ -77,7 +77,7 @@ void NFDash::on_training_btn_clicked()
     connect(worker, SIGNAL(train_nf(double, double, unsigned)), this, SLOT(onTrainNF(double, double, unsigned)));
     connect(worker, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
     connect(worker, SIGNAL(beyond_epoch_limit(unsigned)), this, SLOT(onBeyondEpochLimit(unsigned)));
-    connect(worker, SIGNAL(train_success(double, double, unsigned)), this,  SLOT(onTrainSuccess(double, double, unsigned)));
+    connect(worker, SIGNAL(train_success(double, double, unsigned, std::string)), this,  SLOT(onTrainSuccess(double, double, unsigned, std::string)));
     this->worker->start();
 }
 
@@ -133,8 +133,9 @@ void NFDash::scaleBackPlot()
     ui->plot->update();
 }
 
-void NFDash::onTrainSuccess(double training_error, double validation_error, unsigned epoch)
+void NFDash::onTrainSuccess(double training_error, double validation_error, unsigned epoch, std::string rules_report)
 {
     scaleBackPlot();
     ui->error_lb->setText("Successfully trained after " + QString::number(epoch) + " epochs. The average error on training data is " + QString::number(training_error) + " and the average error on validation data is " + QString::number(validation_error));
+    ui->rules_text->setText(QString::fromStdString(rules_report));
 }

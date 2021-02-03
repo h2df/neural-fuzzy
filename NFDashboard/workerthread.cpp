@@ -45,5 +45,5 @@ void WorkerThread::run(){
 
     } while (validation_error > _training_params.error_threshold);
 
-    emit train_success(training_error, validation_error, trainer.epoch_count);
+    emit train_success(training_error, validation_error, trainer.epoch_count, trainer.GetNN().GetRulesReport());
 }

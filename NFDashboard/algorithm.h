@@ -75,6 +75,7 @@ class NFSystem {
     double GetNormalizer(){return normalizer;}
     std::vector<Rule>& GetRules() { return rules; }
     double CalcOutput(const std::vector<double>& inputs);
+    std::string GetRulesReport();
 };
 
 class NFTrainer {

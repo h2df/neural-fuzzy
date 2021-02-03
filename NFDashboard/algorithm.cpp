@@ -69,6 +69,24 @@ double NFSystem::CalcOutput(const std::vector<double>& inputs) {
         normalizer += rule_output;
     }
     return weighted_sum / normalizer;
+}
+
+std::string NFSystem::GetRulesReport()
+{
+    std::string report = "Rules:\n";
+    for (unsigned i = 0; i < rules.size(); i++) {
+        report += "Rule " + std::to_string(i + 1) + ":\n";
+        Rule r = rules[i];
+        report += "Weight: " + std::to_string(r.GetWeight()) + "\n";
+        for (unsigned j = 0; j < r.GetMemberFuncs().size(); j++) {
+            std::string mem_name = j == 0 ? "Position: " : "Angle: ";
+            auto m = r.GetMemberFuncs()[j];
+            report += mem_name + "Center " + std::to_string(m.GetCenter()) + ", Width " + std::to_string(m.GetWidth()) + "\n";
+        }
+        report += "\n";
+    }
+    report += "\n";
+    return report;
 };
 
 NFTrainer::NFTrainer(const NFTrainParams& params) : params(params), epoch_count(0) {}
@@ -190,12 +208,6 @@ void NFTrainer::TrainOneEpoch() {
     }
     ++epoch_count;
 }
-
-// void NNTrainer::AdjustLearningRates(){
-//     params.weight_learning_rate = params.weight_learning_rate / 10.0;
-//     params.func_center_learning_rate = params.func_center_learning_rate / 10.0;
-//     params.func_width_learning_rate = params.func_width_learning_rate / 10.0;
-// }
 
 double NFTrainer::CalcError(const std::vector<double>& inputs, double label) {
     double output = nn.CalcOutput(inputs);
