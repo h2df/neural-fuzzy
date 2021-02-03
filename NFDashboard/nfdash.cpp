@@ -36,6 +36,7 @@ NFDash::~NFDash()
 void NFDash::on_training_btn_clicked()
 {
     clearPlot();
+    clearRuleReport();
     ui->plot->setVisible(true);
 
     double weight_learning_rate, func_center_learning_rate, func_width_learning_rate;
@@ -119,6 +120,10 @@ void NFDash::clearPlot() {
     ui->plot->update();
 }
 
+void NFDash::clearRuleReport() {
+    ui->rules_text->clear();
+}
+
 
 void NFDash::on_ld_training_data_btn_clicked()
 {
@@ -138,4 +143,10 @@ void NFDash::onTrainSuccess(double training_error, double validation_error, unsi
     scaleBackPlot();
     ui->error_lb->setText("Successfully trained after " + QString::number(epoch) + " epochs. The average error on training data is " + QString::number(training_error) + " and the average error on validation data is " + QString::number(validation_error));
     ui->rules_text->setText(QString::fromStdString(rules_report));
+}
+
+void NFDash::on_shuffle_checkbox_stateChanged(int checked)
+{
+    ui->seed_lb->setVisible(checked);
+    ui->seed_spin->setVisible(checked);
 }

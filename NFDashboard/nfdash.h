@@ -30,6 +30,8 @@ private slots:
     void on_ld_training_data_btn_clicked();
     void onTrainSuccess(double, double, unsigned, std::string);
 
+    void on_shuffle_checkbox_stateChanged(int arg1);
+
 private:
     Ui::NFDash *ui;
     QVector<double> validation_errors;
@@ -39,5 +41,6 @@ private:
     void plot();
     void clearPlot();
     void scaleBackPlot();
+    void clearRuleReport();
 };
 #endif // NFDASH_H
