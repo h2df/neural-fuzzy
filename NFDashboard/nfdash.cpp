@@ -66,6 +66,7 @@ void NFDash::on_training_btn_clicked()
         max_epoch,
         validation_factor
     };
+    trainer = NFTrainer(training_params);
 
     std::string training_data_path = ui->training_data_path_lb->text().toStdString();
     bool shuffle = this->ui->shuffle_checkbox->isChecked();
@@ -74,7 +75,8 @@ void NFDash::on_training_btn_clicked()
         shuffle
     };    
 
-    worker = new WorkerThread(this, training_params, training_data_params);
+
+    worker = new WorkerThread(this, &trainer, training_data_params);
     connect(worker, SIGNAL(train_nf(double, double, unsigned)), this, SLOT(onTrainNF(double, double, unsigned)));
     connect(worker, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
     connect(worker, SIGNAL(beyond_epoch_limit(unsigned)), this, SLOT(onBeyondEpochLimit(unsigned)));

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1550</width>
-    <height>721</height>
+    <height>733</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,56 +17,13 @@
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>260</x>
+      <x>280</x>
       <y>30</y>
       <width>1201</width>
-      <height>621</height>
+      <height>551</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
-     <item row="5" column="1">
-      <widget class="QSpinBox" name="func_center_iterate_spin">
-       <property name="minimum">
-        <number>5</number>
-       </property>
-       <property name="value">
-        <number>10</number>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="0">
-      <widget class="QLabel" name="label_10">
-       <property name="text">
-        <string>Max Epoch (0 = no max epoch limit)</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="3" colspan="5">
-      <widget class="QLabel" name="error_lb">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QLabel" name="test_data_path_lb">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
      <item row="9" column="0">
       <widget class="QLabel" name="label_9">
        <property name="text">
@@ -77,9 +34,71 @@
        </property>
       </widget>
      </item>
-     <item row="12" column="3" rowspan="3" colspan="5">
-      <widget class="QTextEdit" name="rules_text">
-       <property name="readOnly">
+     <item row="7" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Rule Number</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QPushButton" name="ld_training_data_btn">
+       <property name="text">
+        <string>Load Training Data</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QDoubleSpinBox" name="func_center_lr_spin">
+       <property name="decimals">
+        <number>4</number>
+       </property>
+       <property name="minimum">
+        <double>0.000100000000000</double>
+       </property>
+       <property name="maximum">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.000100000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QDoubleSpinBox" name="rule_weight_lr_spin">
+       <property name="decimals">
+        <number>4</number>
+       </property>
+       <property name="minimum">
+        <double>0.000100000000000</double>
+       </property>
+       <property name="maximum">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.000100000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="training_data_path_lb">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="5">
+      <widget class="QCheckBox" name="shuffle_checkbox">
+       <property name="text">
+        <string>Shuffle</string>
+       </property>
+       <property name="checked">
         <bool>true</bool>
        </property>
       </widget>
@@ -100,10 +119,30 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-      <widget class="QLabel" name="label_2">
+     <item row="5" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+      <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>Membership Function Center Learning Rate</string>
+        <string>Membership Function Center Learning Iterate</string>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="1">
+      <widget class="QPushButton" name="training_btn">
+       <property name="text">
+        <string>Start Training</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="4">
+      <widget class="QSpinBox" name="seed_spin"/>
+     </item>
+     <item row="5" column="1">
+      <widget class="QSpinBox" name="func_center_iterate_spin">
+       <property name="minimum">
+        <number>5</number>
+       </property>
+       <property name="value">
+        <number>10</number>
        </property>
       </widget>
      </item>
@@ -114,8 +153,111 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
-      <widget class="QDoubleSpinBox" name="rule_weight_lr_spin">
+     <item row="11" column="3" colspan="5">
+      <widget class="QLabel" name="error_lb">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Rule Weight Learning Rate </string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="7">
+      <widget class="QDoubleSpinBox" name="validation_factor_spin">
+       <property name="maximum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.200000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLabel" name="test_data_path_lb">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2" rowspan="8" colspan="7">
+      <widget class="QCustomPlot" name="plot" native="true"/>
+     </item>
+     <item row="8" column="1">
+      <widget class="QComboBox" name="ini_rule_weight_combo">
+       <item>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="4" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Membership Function Center Learning Rate</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="label_10">
+       <property name="text">
+        <string>Max Epoch (0 = no max epoch limit)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1">
+      <widget class="QComboBox" name="rule_num_combo">
+       <item>
+        <property name="text">
+         <string>25</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>36</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QPushButton" name="ld_test_data_btn">
+       <property name="text">
+        <string>Load Test Data</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="1">
+      <widget class="QDoubleSpinBox" name="error_threshold_spin">
        <property name="decimals">
         <number>4</number>
        </property>
@@ -123,10 +265,20 @@
         <double>0.000100000000000</double>
        </property>
        <property name="maximum">
-        <double>0.100000000000000</double>
+        <double>1.000000000000000</double>
        </property>
        <property name="singleStep">
         <double>0.000100000000000</double>
+       </property>
+       <property name="value">
+        <double>0.000500000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="6">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>Proportion of validation data: </string>
        </property>
       </widget>
      </item>
@@ -150,130 +302,21 @@
        </property>
       </widget>
      </item>
-     <item row="7" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>Rule Number</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QDoubleSpinBox" name="func_center_lr_spin">
-       <property name="decimals">
-        <number>4</number>
-       </property>
-       <property name="minimum">
-        <double>0.000100000000000</double>
-       </property>
-       <property name="maximum">
-        <double>0.100000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.000100000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QPushButton" name="ld_test_data_btn">
-       <property name="text">
-        <string>Load Test Data</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="2" rowspan="8" colspan="7">
-      <widget class="QCustomPlot" name="plot" native="true"/>
-     </item>
-     <item row="5" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Membership Function Center Learning Iterate</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="training_data_path_lb">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="1">
-      <widget class="QComboBox" name="rule_num_combo">
-       <item>
-        <property name="text">
-         <string>25</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>16</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>36</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="12" column="1">
-      <widget class="QPushButton" name="training_btn">
-       <property name="text">
-        <string>Start Training</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="7">
-      <widget class="QDoubleSpinBox" name="validation_factor_spin">
-       <property name="maximum">
-        <double>1.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.100000000000000</double>
-       </property>
-       <property name="value">
-        <double>0.200000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Rule Weight Learning Rate </string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QPushButton" name="ld_training_data_btn">
-       <property name="text">
-        <string>Load Training Data</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="5">
-      <widget class="QCheckBox" name="shuffle_checkbox">
-       <property name="text">
-        <string>Shuffle</string>
-       </property>
-       <property name="checked">
+     <item row="12" column="2" rowspan="3" colspan="6">
+      <widget class="QTextEdit" name="rules_text">
+       <property name="readOnly">
         <bool>true</bool>
        </property>
       </widget>
      </item>
-     <item row="0" column="6">
-      <widget class="QLabel" name="label_8">
+     <item row="0" column="2" colspan="2">
+      <widget class="QLabel" name="seed_lb">
        <property name="text">
-        <string>Proportion of validation data: </string>
+        <string>Seed</string>
        </property>
       </widget>
      </item>
-     <item row="11" column="1" colspan="2">
+     <item row="11" column="0" colspan="3">
       <widget class="QLabel" name="warning_lb">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
@@ -352,49 +395,6 @@
        </property>
        <property name="text">
         <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <widget class="QComboBox" name="ini_rule_weight_combo">
-       <item>
-        <property name="text">
-         <string>0</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>1</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="9" column="1">
-      <widget class="QDoubleSpinBox" name="error_threshold_spin">
-       <property name="decimals">
-        <number>4</number>
-       </property>
-       <property name="minimum">
-        <double>0.000100000000000</double>
-       </property>
-       <property name="maximum">
-        <double>1.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.000100000000000</double>
-       </property>
-       <property name="value">
-        <double>0.000500000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="4">
-      <widget class="QSpinBox" name="seed_spin"/>
-     </item>
-     <item row="0" column="3">
-      <widget class="QLabel" name="seed_lb">
-       <property name="text">
-        <string>Seed</string>
        </property>
       </widget>
      </item>

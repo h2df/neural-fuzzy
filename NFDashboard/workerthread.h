@@ -7,10 +7,10 @@
 class WorkerThread : public QThread
 {
     Q_OBJECT
-    const NFTrainParams _training_params;
+    NFTrainer* trainer;
     const TrainingDataParams _data_params;
 public:
-    explicit WorkerThread(QObject *parent, const NFTrainParams& params, const TrainingDataParams& training_data_params);
+    explicit WorkerThread(QObject *parent, NFTrainer* trainer, const TrainingDataParams& training_data_params);
     void run() override;
 signals:
     void warning(std::string);

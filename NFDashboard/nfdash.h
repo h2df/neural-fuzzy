@@ -37,6 +37,7 @@ private:
     QVector<double> validation_errors;
     QVector<double> training_errors;
     QVector<double> epochs;
+    NFTrainer trainer;
 
     void plot();
     void clearPlot();

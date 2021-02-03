@@ -1,14 +1,13 @@
 #include "workerthread.h"
 
-WorkerThread::WorkerThread(QObject *parent, const NFTrainParams& params, const TrainingDataParams& training_data_params) :QThread(parent),
-    _training_params(params), _data_params(training_data_params)
+WorkerThread::WorkerThread(QObject *parent, NFTrainer *trainer, const TrainingDataParams& training_data_params) :QThread(parent),
+    trainer(trainer), _data_params(training_data_params)
 {
 }
 
 void WorkerThread::run(){
-    NFTrainer trainer = NFTrainer(_training_params);
-    trainer.Initialize(_data_params);
-    if (!trainer.HasTrainingDataReady()) {
+    trainer->Initialize(_data_params);
+    if (!trainer->HasTrainingDataReady()) {
         emit warning("Invalid training data path: " + _data_params.training_data_path);
         return;
     }
@@ -21,18 +20,18 @@ void WorkerThread::run(){
     qDebug() << "Training begins... ";
     do
     {
-        if (trainer.ForceStopTraining()) {
-            emit beyond_epoch_limit(trainer.epoch_count);
+        if (trainer->ForceStopTraining()) {
+            emit beyond_epoch_limit(trainer->epoch_count);
             return;
         }
 
-        trainer.TrainOneEpoch();
-        training_error = trainer.CalcTrainingError();
+        trainer->TrainOneEpoch();
+        training_error = trainer->CalcTrainingError();
         prev_validation_error = validation_error;
-        validation_error = trainer.CalcValidationError();
+        validation_error = trainer->CalcValidationError();
         qDebug() << "\n\t Training Error: " << training_error;
         qDebug() << "\n\t Validation Error: " << validation_error ;
-        qDebug() << "---<< Epoch # " << trainer.epoch_count << " >>---" << ", validation error difference = " << fabs(validation_error - prev_validation_error);
+        qDebug() << "---<< Epoch # " << trainer->epoch_count << " >>---" << ", validation error difference = " << fabs(validation_error - prev_validation_error);
 
 
         //let user adjust learning rate manually to be consistent with other hyper parameters
@@ -41,9 +40,9 @@ void WorkerThread::run(){
         //     trainer.AdjustLearningRates();
         // }
 
-        emit train_nf(training_error, validation_error, trainer.epoch_count);
+        emit train_nf(training_error, validation_error, trainer->epoch_count);
 
-    } while (validation_error > _training_params.error_threshold);
+    } while (validation_error > trainer->GetErrorThreshold());
 
-    emit train_success(training_error, validation_error, trainer.epoch_count, trainer.GetNN().GetRulesReport());
+    emit train_success(training_error, validation_error, trainer->epoch_count, trainer->GetNN().GetRulesReport());
 }

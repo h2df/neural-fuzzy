@@ -98,6 +98,7 @@ class NFTrainer {
     double CalcValidationError();
     bool HasTrainingDataReady();
     bool ForceStopTraining();
+    double GetErrorThreshold() {return params.error_threshold;}
     NFSystem GetNN() {return nn;}
 };
 
