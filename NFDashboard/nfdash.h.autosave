@@ -2,7 +2,7 @@
 #define NFDASH_H
 
 #include <QMainWindow>
-#include "workerthread.h"
+#include "trainthread.h"
 #include "algorithm.h"
 #include <QtDebug>
 #include <QFileDialog>
@@ -18,7 +18,7 @@ class NFDash : public QMainWindow
 public:
     NFDash(QWidget *parent = nullptr);
     ~NFDash();
-    WorkerThread *worker;
+    TrainThread *worker;
 
 
 

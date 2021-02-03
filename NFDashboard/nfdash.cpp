@@ -80,19 +80,19 @@ void NFDash::on_training_btn_clicked()
     };    
 
 
-    worker = new WorkerThread(this, &trainer, training_data_params);
-    connect(worker, SIGNAL(train_nf(double, double, unsigned)), this, SLOT(onTrainNF(double, double, unsigned)));
-    connect(worker, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
-    connect(worker, SIGNAL(beyond_epoch_limit(unsigned)), this, SLOT(onBeyondEpochLimit(unsigned)));
-    connect(worker, SIGNAL(train_success(double, double, unsigned, std::string)), this,  SLOT(onTrainSuccess(double, double, unsigned, std::string)));
-    this->worker->start();
+    train_thread = new TrainThread(this, &trainer, training_data_params);
+    connect(train_thread, SIGNAL(train_nf(double, double)), this, SLOT(onTrainNF(double, double)));
+    connect(train_thread, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
+    connect(train_thread, SIGNAL(beyond_epoch_limit(unsigned)), this, SLOT(onBeyondEpochLimit(unsigned)));
+    connect(train_thread, SIGNAL(train_success(double, double)), this,  SLOT(onTrainSuccess(double, double)));
+    this->train_thread->start();
 }
 
-void NFDash::onTrainNF(double training_error, double validation_error, unsigned epoch) {
-    this->ui->error_lb->setText("Epoch: " + QString::number(epoch) + ", Training Error: " + QString::number(training_error) + ", Validation Error: " + QString::number(validation_error));
+void NFDash::onTrainNF(double training_error, double validation_error) {
+    this->ui->error_lb->setText("Epoch: " + QString::number(trainer.epoch_count) + ", Training Error: " + QString::number(training_error) + ", Validation Error: " + QString::number(validation_error));
     training_errors.append(training_error);
     validation_errors.append(validation_error);
-    epochs.append(double (epoch));
+    epochs.append(double (trainer.epoch_count));
     plot();
 }
 
@@ -144,11 +144,11 @@ void NFDash::scaleBackPlot()
     ui->plot->update();
 }
 
-void NFDash::onTrainSuccess(double training_error, double validation_error, unsigned epoch, std::string rules_report)
+void NFDash::onTrainSuccess(double training_error, double validation_error)
 {
     scaleBackPlot();
-    ui->error_lb->setText("Successfully trained after " + QString::number(epoch) + " epochs. The average error on training data is " + QString::number(training_error) + " and the average error on validation data is " + QString::number(validation_error));
-    ui->rules_text->setText(QString::fromStdString(rules_report));
+    ui->error_lb->setText("Successfully trained after " + QString::number(trainer.epoch_count) + " epochs. The average error on training data is " + QString::number(training_error) + " and the average error on validation data is " + QString::number(validation_error));
+    ui->rules_text->setText(QString::fromStdString(trainer.GetNN().GetRulesReport()));
 }
 
 void NFDash::on_shuffle_checkbox_stateChanged(int checked)
