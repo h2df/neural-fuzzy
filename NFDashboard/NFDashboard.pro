@@ -20,12 +20,14 @@ SOURCES += \
     main.cpp \
     nfdash.cpp \
     qcustomplot.cpp \
+    testthread.cpp \
     trainthread.cpp
 
 HEADERS += \
     algorithm.h\
     nfdash.h \
     qcustomplot.h \
+    testthread.h \
     trainthread.h
 
 FORMS += \

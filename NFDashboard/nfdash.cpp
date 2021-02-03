@@ -135,6 +135,14 @@ void NFDash::on_ld_training_data_btn_clicked()
 {
     QString fn = QFileDialog::getOpenFileName(this, "Open training data file", "C:\\Users\\zhang\\Desktop\\159333Data");
     ui->training_data_path_lb->setText(fn);
+    ui->training_btn->setEnabled(true);
+}
+
+void NFDash::on_ld_test_data_btn_clicked()
+{
+    QString fn = QFileDialog::getOpenFileName(this, "Open test data file", "C:\\Users\\zhang\\Desktop\\159333Data");
+    ui->test_data_path_lb->setText(fn);
+    ui->test_btn->setEnabled(true);
 }
 
 void NFDash::scaleBackPlot()
@@ -155,4 +163,12 @@ void NFDash::on_shuffle_checkbox_stateChanged(int checked)
 {
     ui->seed_lb->setVisible(checked);
     ui->seed_spin->setVisible(checked);
+}
+
+
+void NFDash::on_test_btn_clicked()
+{
+    std::string tet_data_path = ui->test_data_path_lb->text().toStdString();
+    test_thread = new TestThread(this, trainer.GetNN(), tet_data_path);
+    test_thread->start();
 }

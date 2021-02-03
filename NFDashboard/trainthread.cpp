@@ -1,11 +1,11 @@
-#include "workerthread.h"
+#include "trainthread.h"
 
-WorkerThread::WorkerThread(QObject *parent, NFTrainer *trainer, const TrainingDataParams& training_data_params) :QThread(parent),
+TrainThread::TrainThread(QObject *parent, NFTrainer *trainer, const TrainingDataParams& training_data_params) :QThread(parent),
     trainer(trainer), _data_params(training_data_params)
 {
 }
 
-void WorkerThread::run(){
+void TrainThread::run(){
     trainer->Initialize(_data_params);
     if (!trainer->HasTrainingDataReady()) {
         emit warning("Invalid training data path: " + _data_params.training_data_path);

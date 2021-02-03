@@ -2,7 +2,8 @@
 #define NFDASH_H
 
 #include <QMainWindow>
-#include "workerthread.h"
+#include "trainthread.h"
+#include "testthread.h"
 #include "algorithm.h"
 #include <QtDebug>
 #include <QFileDialog>
@@ -18,7 +19,8 @@ class NFDash : public QMainWindow
 public:
     NFDash(QWidget *parent = nullptr);
     ~NFDash();
-    WorkerThread *worker;
+    TrainThread *train_thread;
+    TestThread *test_thread;
 
 
 
@@ -31,6 +33,10 @@ private slots:
     void onTrainSuccess(double, double);
 
     void on_shuffle_checkbox_stateChanged(int arg1);
+
+    void on_ld_test_data_btn_clicked();
+
+    void on_test_btn_clicked();
 
 private:
     Ui::NFDash *ui;
