@@ -70,6 +70,10 @@ void NFDash::on_training_btn_clicked()
 
     std::string training_data_path = ui->training_data_path_lb->text().toStdString();
     bool shuffle = this->ui->shuffle_checkbox->isChecked();
+    if (shuffle) {
+        srand(ui->seed_spin->value());
+    }
+
     TrainingDataParams training_data_params = {
         training_data_path,
         shuffle
