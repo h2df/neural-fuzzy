@@ -7,18 +7,19 @@
 class TrainThread : public QThread
 {
     Q_OBJECT
-    NFTrainer* trainer;
+    NFSystem *nf;
+    const NFTrainParams params;
     PendulumDataNormalizer *normalizer;
     std::string training_data_path;
     bool Initialize();
 public:
-    explicit TrainThread(QObject *parent, NFTrainer* trainer, PendulumDataNormalizer* normalizer, const std::string training_data_path);
+    TrainThread(QObject *parent, NFSystem *nf, const NFTrainParams params, PendulumDataNormalizer* normalizer, const std::string training_data_path);
     void run() override;
 signals:
     void warning(std::string);
     void beyond_epoch_limit(unsigned);
-    void train_nf(double, double);
-    void train_success(double, double);
+    void train_nf(double, double, unsigned);
+    void train_success(double, double, unsigned, std::string);
 };
 
 #endif // TRAINTHREAD_H

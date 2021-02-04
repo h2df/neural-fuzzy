@@ -19,18 +19,16 @@ class NFDash : public QMainWindow
 public:
     NFDash(QWidget *parent = nullptr);
     ~NFDash();
-    TrainThread *train_thread;
-    TestThread *test_thread;
 
 
 
 private slots:
     void on_training_btn_clicked();
-    void onTrainNF(double, double);
+    void onTrainNF(double, double, unsigned);
     void onWarning(std::string);
     void onBeyondEpochLimit(unsigned);
     void on_ld_training_data_btn_clicked();
-    void onTrainSuccess(double, double);
+    void onTrainSuccess(double, double, unsigned, std::string);
 
     void on_shuffle_checkbox_stateChanged(int arg1);
 
@@ -43,8 +41,10 @@ private:
     QVector<double> validation_errors;
     QVector<double> training_errors;
     QVector<double> epochs;
-    NFTrainer trainer;
-    PendulumDataNormalizer normalizer;
+    PendulumDataNormalizer *normalizer;
+    NFSystem *nf;
+    TrainThread *train_thread;
+    TestThread *test_thread;
 
     void plot();
     void clearPlot();

@@ -86,7 +86,7 @@ std::string NFSystem::GetRulesReport()
     return report;
 };
 
-NFTrainer::NFTrainer(const NFTrainParams& params) : params(params), epoch_count(0) {}
+NFTrainer::NFTrainer(NFSystem* nf, const NFTrainParams& params) : nf(nf), params(params), epoch_count(0) {}
 
 void NFTrainer::NormalizeData(const PendulumDataNormalizer* normalizer) {
     training_data = normalizer->Normalize(training_data);
@@ -116,30 +116,29 @@ bool NFTrainer::Initialize(const std::string training_data_path) {
         std::random_shuffle(validation_data.begin(), validation_data.end());
     }
 
-    nn = NFSystem(params.rule_num, params.initial_rule_weight);
     return true;
 }
 
 
 void NFTrainer::TrainOneIterate(const std::vector<double>& inputs, double label, unsigned& iterate_count) {
-    double output = nn.CalcOutput(inputs);  //step 3 in paper
-    for (Rule& rule : nn.GetRules()) {
-        double new_weight = rule.GetWeight() - params.weight_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label);
+    double output = nf->CalcOutput(inputs);  //step 3 in paper
+    for (Rule& rule : nf->GetRules()) {
+        double new_weight = rule.GetWeight() - params.weight_learning_rate * (rule.GetLastOutput() / nf->GetNormalizer()) * (output - label);
         rule.SetWeight(new_weight);  //step 4 in paper
     }
-    output = nn.CalcOutput(inputs);  //step 5 in paper
-    for (Rule& rule : nn.GetRules()) {
+    output = nf->CalcOutput(inputs);  //step 5 in paper
+    for (Rule& rule : nf->GetRules()) {
         if (rule.GetLastOutput() == 0) {
             continue;  //inactive rules should be skipped in this epoch's backpropagation
         }
         for (MemberFunc& func : rule.GetMemberFuncs()) {
             if((iterate_count % params.center_move_iterate)== 0){
                 //std::cout << "\n\t\tAdjusting the centre parameter..." << std::endl;
-                double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (2 * sgn(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
+                double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / nf->GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (2 * sgn(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
                 func.SetCenter(new_center);
             }
 
-            double new_width = func.GetWidth() - params.func_center_learning_rate * (rule.GetLastOutput() / nn.GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (1 - func.GetLastOutput()) / func.GetLastOutput() * (1 / func.GetWidth());
+            double new_width = func.GetWidth() - params.func_center_learning_rate * (rule.GetLastOutput() / nf->GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (1 - func.GetLastOutput()) / func.GetLastOutput() * (1 / func.GetWidth());
             func.SetWidth(new_width);
         }
     }
@@ -159,43 +158,30 @@ void NFTrainer::TrainOneEpoch() {
     ++epoch_count;
 }
 
-double NFTrainer::CalcError(const std::vector<double>& inputs, double label) {
-    double output = nn.CalcOutput(inputs);
-    return pow(output - label, 2);
-}
-
-double NFTrainer::CalcValidationError() {
-    double total_error = 0;
-    for (auto sample: validation_data) {
-        std::vector<double> inputs;
-        inputs.reserve(2);
-        inputs.emplace_back(std::get<0>(sample));
-        inputs.emplace_back(std::get<1>(sample));
-        double label = std::get<2>(sample);
-        double error = CalcError(inputs, label);
-        total_error += error;
-    }
-    return total_error/validation_data.size();
-}
-
-double NFTrainer::CalcTrainingError() {
-    double total_error = 0;
-    for (auto sample: training_data) {
-        std::vector<double> inputs;
-        inputs.reserve(2);
-        inputs.emplace_back(std::get<0>(sample));
-        inputs.emplace_back(std::get<1>(sample));
-        auto pos = inputs[0];
-        auto angle = inputs[1];
-        double label = std::get<2>(sample);
-        double error = CalcError(inputs, label);
-        total_error += error;
-    }
-    return total_error/training_data.size();
-}
-
 bool NFTrainer::ForceStopTraining() {
     return params.max_epoch > 0 && (epoch_count > params.max_epoch);
+}
+
+NFTester::NFTester(NFSystem *nf):nf(nf){}
+
+double NFTester::CalcAvgError(std::vector<std::tuple<double, double, double> > data)
+{
+    double total_error = 0;
+    for (auto sample: data) {
+        std::vector<double> inputs;
+        inputs.reserve(2);
+        inputs.emplace_back(std::get<0>(sample));
+        inputs.emplace_back(std::get<1>(sample));
+        double label = std::get<2>(sample);
+        double error = CalcError(inputs, label);
+        total_error += error;
+    }
+    return total_error/data.size();
+}
+
+double NFTester::CalcError(std::vector<double> inputs, double label){
+    double output = nf->CalcOutput(inputs);
+    return pow(output - label, 2);
 }
 
 std::vector<double> linspace(double start, double end, unsigned total_num) {

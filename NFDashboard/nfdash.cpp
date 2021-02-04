@@ -31,6 +31,10 @@ NFDash::NFDash(QWidget *parent)
 NFDash::~NFDash()
 {
     delete ui;
+    delete nf;
+    delete train_thread;
+    delete test_thread;
+    delete normalizer;
 }
 
 void NFDash::on_training_btn_clicked()
@@ -62,33 +66,32 @@ void NFDash::on_training_btn_clicked()
         srand(ui->seed_spin->value());
     }
 
+    nf = new NFSystem(rule_num, initial_rule_weight);
+
     NFTrainParams training_params = {
         weight_learning_rate, func_center_learning_rate, func_width_learning_rate,
         center_move_iterate,
-        initial_rule_weight,
-        rule_num,
         error_threshold,
         max_epoch,
         validation_factor,
         shuffle
     };
-    trainer = NFTrainer(training_params);
 
     std::string training_data_path = ui->training_data_path_lb->text().toStdString();
 
-    train_thread = new TrainThread(this, &trainer, &normalizer, training_data_path);
-    connect(train_thread, SIGNAL(train_nf(double, double)), this, SLOT(onTrainNF(double, double)));
+    train_thread = new TrainThread(this, nf, training_params, normalizer, training_data_path);
+    connect(train_thread, SIGNAL(train_nf(double, double, unsigned)), this, SLOT(onTrainNF(double, double, unsigned)));
     connect(train_thread, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
     connect(train_thread, SIGNAL(beyond_epoch_limit(unsigned)), this, SLOT(onBeyondEpochLimit(unsigned)));
-    connect(train_thread, SIGNAL(train_success(double, double)), this,  SLOT(onTrainSuccess(double, double)));
+    connect(train_thread, SIGNAL(train_success(double, double, unsigned, std::string)), this,  SLOT(onTrainSuccess(double, double, unsigned, std::string)));
     this->train_thread->start();
 }
 
-void NFDash::onTrainNF(double training_error, double validation_error) {
-    this->ui->error_lb->setText("Epoch: " + QString::number(trainer.epoch_count) + ", Training Error: " + QString::number(training_error) + ", Validation Error: " + QString::number(validation_error));
+void NFDash::onTrainNF(double training_error, double validation_error, unsigned epoch_count) {
+    this->ui->error_lb->setText("Epoch: " + QString::number(epoch_count) + ", Training Error: " + QString::number(training_error) + ", Validation Error: " + QString::number(validation_error));
     training_errors.append(training_error);
     validation_errors.append(validation_error);
-    epochs.append(double (trainer.epoch_count));
+    epochs.append(double (epoch_count));
     plot();
 }
 
@@ -148,11 +151,11 @@ void NFDash::scaleBackPlot()
     ui->plot->update();
 }
 
-void NFDash::onTrainSuccess(double training_error, double validation_error)
+void NFDash::onTrainSuccess(double training_error, double validation_error, unsigned epoch_count, std::string report)
 {
     scaleBackPlot();
-    ui->error_lb->setText("Successfully trained after " + QString::number(trainer.epoch_count) + " epochs. The average error on training data is " + QString::number(training_error) + " and the average error on validation data is " + QString::number(validation_error));
-    ui->rules_text->setText(QString::fromStdString(trainer.GetNN().GetRulesReport()));
+    ui->error_lb->setText("Successfully trained after " + QString::number(epoch_count) + " epochs. The average error on training data is " + QString::number(training_error) + " and the average error on validation data is " + QString::number(validation_error));
+    ui->rules_text->setText(QString::fromStdString(report));
 }
 
 void NFDash::on_shuffle_checkbox_stateChanged(int checked)
@@ -165,6 +168,6 @@ void NFDash::on_shuffle_checkbox_stateChanged(int checked)
 void NFDash::on_test_btn_clicked()
 {
     std::string tet_data_path = ui->test_data_path_lb->text().toStdString();
-    test_thread = new TestThread(this, trainer.GetNN(), tet_data_path);
+    test_thread = new TestThread(this, nf, tet_data_path);
     test_thread->start();
 }
