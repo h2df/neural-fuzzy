@@ -46,6 +46,7 @@ void NFDash::on_training_btn_clicked()
     double error_threshold;
     unsigned max_epoch;
     double validation_factor;
+    bool shuffle;
 
     weight_learning_rate = this->ui->rule_weight_lr_spin->value();
     func_center_learning_rate = this->ui->func_center_lr_spin->value();
@@ -56,6 +57,10 @@ void NFDash::on_training_btn_clicked()
     error_threshold = this->ui->error_threshold_spin->value();
     max_epoch = this->ui->max_epoch_spin->value();
     validation_factor = this->ui->validation_factor_spin->value();
+    shuffle = this->ui->shuffle_checkbox->isChecked();
+    if (shuffle) {
+        srand(ui->seed_spin->value());
+    }
 
     NFTrainParams training_params = {
         weight_learning_rate, func_center_learning_rate, func_width_learning_rate,
@@ -64,23 +69,14 @@ void NFDash::on_training_btn_clicked()
         rule_num,
         error_threshold,
         max_epoch,
-        validation_factor
+        validation_factor,
+        shuffle
     };
     trainer = NFTrainer(training_params);
 
     std::string training_data_path = ui->training_data_path_lb->text().toStdString();
-    bool shuffle = this->ui->shuffle_checkbox->isChecked();
-    if (shuffle) {
-        srand(ui->seed_spin->value());
-    }
 
-    TrainingDataParams training_data_params = {
-        training_data_path,
-        shuffle
-    };    
-
-
-    train_thread = new TrainThread(this, &trainer, training_data_params);
+    train_thread = new TrainThread(this, &trainer, &normalizer, training_data_path);
     connect(train_thread, SIGNAL(train_nf(double, double)), this, SLOT(onTrainNF(double, double)));
     connect(train_thread, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
     connect(train_thread, SIGNAL(beyond_epoch_limit(unsigned)), this, SLOT(onBeyondEpochLimit(unsigned)));

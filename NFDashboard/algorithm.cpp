@@ -32,10 +32,7 @@ double Rule::CalcOutput(const std::vector<double>& inputs) {
     return output;
 }
 
-NFSystem::NFSystem(unsigned rule_num, double initial_rule_weight, double min_pos, double max_pos, double min_angle, double max_angle, double min_label, double max_label) :
-    min_pos(min_pos), max_pos(max_pos),
-    min_angle(min_angle), max_angle(max_angle),
-    min_label(min_label), max_label(max_label){
+NFSystem::NFSystem(unsigned rule_num, double initial_rule_weight) {
     unsigned function_num = (unsigned)sqrt(rule_num);
 
     double pos_width = 1 / (function_num / 2.0);
@@ -91,83 +88,36 @@ std::string NFSystem::GetRulesReport()
 
 NFTrainer::NFTrainer(const NFTrainParams& params) : params(params), epoch_count(0) {}
 
-void NFTrainer::Initialize(const TrainingDataParams &data_params) {
-    std::ifstream training_f(data_params.training_data_path);
-    if (!training_f.is_open()) {
-        return;
-    }
+void NFTrainer::NormalizeData(const PendulumDataNormalizer* normalizer) {
+    training_data = normalizer->Normalize(training_data);
+    validation_data = normalizer->Normalize(validation_data);
+}
 
-    double max_pos = std::numeric_limits<double>::min();
-    double min_pos = std::numeric_limits<double>::max();
-    double max_angle = std::numeric_limits<double>::min();
-    double min_angle = std::numeric_limits<double>::max();
-    double max_label = std::numeric_limits<double>::min();
-    double min_label = std::numeric_limits<double>::max();
+bool NFTrainer::Initialize(const std::string training_data_path) {
+
+    std::ifstream training_f(training_data_path);
+    if (!training_f.is_open()) {
+        return false;
+    }
 
     double pos_input, angle_input, label;
     unsigned count = 0;
     while (training_f >> pos_input >> angle_input >> label) {
         count = (count + 1) % 10;
-        if ((count > (1 - params.validation_factor) * 10)) {//e.g. if user set validation_factor to be 0.2, every 2 out of 10 samples will be used for validation
+        if (count > (1 - params.validation_factor) * 10) {//e.g. if user set validation_factor to be 0.2, every 2 out of 10 samples will be used for validation
             validation_data.push_back(std::tuple<double, double, double>(pos_input, angle_input, label));
-            continue;
+        } else {
+            training_data.push_back(std::tuple<double, double, double>(pos_input, angle_input, label));
         }
-
-        if (pos_input > max_pos) {
-            max_pos = pos_input;
-        }
-        if (pos_input < min_pos) {
-            min_pos = pos_input;
-        }
-        if (angle_input > max_angle) {
-            max_angle = angle_input;
-        }
-        if (angle_input < min_angle) {
-            min_angle = angle_input;
-        }
-        if (label > max_label) {
-            max_label = label;
-        }
-        if (label < min_label) {
-            min_label = label;
-        }
-        training_data.training_data.push_back(std::tuple<double, double, double>(pos_input, angle_input, label));
     }
 
-    nn = NFSystem(params.rule_num, params.initial_rule_weight, min_pos, max_pos, min_angle, max_angle, min_label, max_label);
-
-    if (data_params.shuffle) {
-        std::random_shuffle(training_data.training_data.begin(), training_data.training_data.end());
+    if (params.shuffle) {
+        std::random_shuffle(training_data.begin(), training_data.end());
+        std::random_shuffle(validation_data.begin(), validation_data.end());
     }
 
-    //normalize training and testing data
-    for (unsigned i = 0; i < training_data.training_data.size(); i++) {
-        double pos = std::get<0>(training_data.training_data[i]);
-        double new_pos = (pos - min_pos) / (max_pos - min_pos);
-
-        double angle = std::get<1>(training_data.training_data[i]);
-        double new_angle = (angle - min_angle) / (max_angle - min_angle);
-
-        double label = std::get<2>(training_data.training_data[i]);
-        double new_label = (label - min_label) / (max_label - min_label);
-
-        training_data.training_data[i] = std::tuple<double, double, double>(new_pos, new_angle, new_label);
-    }
-
-    for (unsigned i = 0; i < validation_data.size(); i++) {
-        double pos = std::get<0>(validation_data[i]);
-        double new_pos = (pos - min_pos) / (max_pos - min_pos);
-
-        double angle = std::get<1>(validation_data[i]);
-        double new_angle = (angle - min_angle) / (max_angle - min_angle);
-
-        double label = std::get<2>(validation_data[i]);
-        double new_label = (label - min_label) / (max_label - min_label);
-
-        validation_data[i] = std::tuple<double, double, double>(new_pos, new_angle, new_label);
-    }
-
-    training_data.valid = true;
+    nn = NFSystem(params.rule_num, params.initial_rule_weight);
+    return true;
 }
 
 
@@ -198,7 +148,7 @@ void NFTrainer::TrainOneIterate(const std::vector<double>& inputs, double label,
 
 void NFTrainer::TrainOneEpoch() {
     unsigned iterate_count = 0;
-    for (auto sample : training_data.training_data) {
+    for (auto sample : training_data) {
         std::vector<double> inputs;
         inputs.reserve(2);
         inputs.emplace_back(std::get<0>(sample));
@@ -230,20 +180,18 @@ double NFTrainer::CalcValidationError() {
 
 double NFTrainer::CalcTrainingError() {
     double total_error = 0;
-    for (auto sample: training_data.training_data) {
+    for (auto sample: training_data) {
         std::vector<double> inputs;
         inputs.reserve(2);
         inputs.emplace_back(std::get<0>(sample));
         inputs.emplace_back(std::get<1>(sample));
+        auto pos = inputs[0];
+        auto angle = inputs[1];
         double label = std::get<2>(sample);
         double error = CalcError(inputs, label);
         total_error += error;
     }
-    return total_error/training_data.training_data.size();
-}
-
-bool NFTrainer::HasTrainingDataReady() {
-    return training_data.valid;
+    return total_error/training_data.size();
 }
 
 bool NFTrainer::ForceStopTraining() {
@@ -264,3 +212,72 @@ double sgn(double val) {
     auto sign =  (0 < val) - (val < 0);
     return (double)sign;
 }
+
+
+void PendulumDataNormalizer::Initialize(std::vector<std::tuple<double, double, double>> data)
+{
+
+    max_pos = std::numeric_limits<double>::min();
+    min_pos = std::numeric_limits<double>::max();
+    max_angle = std::numeric_limits<double>::min();
+    min_angle = std::numeric_limits<double>::max();
+    max_output = std::numeric_limits<double>::min();
+    min_output = std::numeric_limits<double>::max();
+
+    for (auto sample : data) {
+        double pos_input = std::get<0>(sample);
+        double angle_input = std::get<1>(sample);
+        double output = std::get<2>(sample);
+
+        if (pos_input > max_pos) {
+            max_pos = pos_input;
+        }
+        if (pos_input < min_pos) {
+            min_pos = pos_input;
+        }
+        if (angle_input > max_angle) {
+            max_angle = angle_input;
+        }
+        if (angle_input < min_angle) {
+            min_angle = angle_input;
+        }
+        if (output > max_output) {
+            max_output = output;
+        }
+        if (output < min_output) {
+            min_output = output;
+        }
+    }
+}
+
+std::vector<std::tuple<double, double, double>> PendulumDataNormalizer::Normalize(const std::vector<std::tuple<double, double, double>> data) const
+{
+    auto result = std::vector<std::tuple<double,double,double>>(data.size());
+    for (auto sample : data) {
+        double pos = std::get<0>(sample);
+        pos = (pos - min_pos) / (max_pos - min_pos);
+        double angle = std::get<1>(sample);
+        angle = (angle - min_angle) / (max_angle - min_angle);
+        double output = std::get<2>(sample);
+        output = (output - min_output) / (max_output - min_output);
+        result.emplace_back(std::tuple<double, double, double>(pos, angle, output));
+    }
+    return result;
+}
+
+std::vector<std::tuple<double, double, double>> PendulumDataNormalizer::Denormalize(const std::vector<std::tuple<double, double, double>> data) const
+{
+    auto result = std::vector<std::tuple<double,double,double>>(data.size());
+    for (auto sample : data) {
+        double pos = std::get<0>(sample);
+        pos = min_pos + pos * (max_pos - min_pos);
+        double angle = std::get<1>(sample);
+        angle = min_angle + angle * (max_angle - min_angle);
+        double output = std::get<2>(sample);
+        output = min_output + output * (max_output - min_output);
+        result.emplace_back(std::tuple<double, double, double>(pos, angle, output));
+    }
+    return result;
+}
+
+

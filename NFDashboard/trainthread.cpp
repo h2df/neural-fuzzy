@@ -1,14 +1,15 @@
 #include "trainthread.h"
 
-TrainThread::TrainThread(QObject *parent, NFTrainer *trainer, const TrainingDataParams& training_data_params) :QThread(parent),
-    trainer(trainer), _data_params(training_data_params)
+
+TrainThread::TrainThread(QObject *parent, NFTrainer *trainer, PendulumDataNormalizer *normalizer, const std::string training_data_path) :QThread(parent),
+    trainer(trainer), normalizer(normalizer), training_data_path(training_data_path)
 {
 }
 
 void TrainThread::run(){
-    trainer->Initialize(_data_params);
-    if (!trainer->HasTrainingDataReady()) {
-        emit warning("Invalid training data path: " + _data_params.training_data_path);
+
+    if (!Initialize()){
+        emit warning("Invalid training data path: " + training_data_path);
         return;
     }
 
@@ -38,4 +39,17 @@ void TrainThread::run(){
     } while (validation_error > trainer->GetErrorThreshold());
 
     emit train_success(training_error, validation_error);
+}
+
+
+bool TrainThread::Initialize()
+{
+
+    if (!trainer->Initialize(training_data_path)) {
+        return false;
+    }
+
+    normalizer->Initialize(trainer->GetTrainingData());
+    trainer->NormalizeData(normalizer);
+    return true;
 }

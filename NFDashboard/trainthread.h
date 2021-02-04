@@ -8,9 +8,11 @@ class TrainThread : public QThread
 {
     Q_OBJECT
     NFTrainer* trainer;
-    const TrainingDataParams _data_params;
+    PendulumDataNormalizer *normalizer;
+    std::string training_data_path;
+    bool Initialize();
 public:
-    explicit TrainThread(QObject *parent, NFTrainer* trainer, const TrainingDataParams& training_data_params);
+    explicit TrainThread(QObject *parent, NFTrainer* trainer, PendulumDataNormalizer* normalizer, const std::string training_data_path);
     void run() override;
 signals:
     void warning(std::string);

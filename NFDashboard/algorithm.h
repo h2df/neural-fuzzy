@@ -10,11 +10,6 @@
 #include <tuple>
 #include <vector>
 
-struct TrainingData {
-    bool valid = false;
-    std::vector<std::tuple<double, double, double>> training_data;
-};
-
 struct NFTrainParams {
     double weight_learning_rate, func_center_learning_rate, func_width_learning_rate;
     unsigned center_move_iterate;
@@ -23,10 +18,6 @@ struct NFTrainParams {
     double error_threshold;
     unsigned max_epoch;
     double validation_factor;
-};
-
-struct TrainingDataParams {
-    std::string training_data_path;
     bool shuffle;
 };
 
@@ -63,15 +54,24 @@ class Rule {
     double CalcOutput(const std::vector<double>& inputs);
 };
 
+class PendulumDataNormalizer {
+private:
+    double min_pos, max_pos, min_angle, max_angle, min_output, max_output;
+
+public:
+    void Initialize(std::vector<std::tuple<double, double, double>> data);
+    std::vector<std::tuple<double, double, double>> Normalize(std::vector<std::tuple<double, double, double>> data) const;
+    std::vector<std::tuple<double, double, double>> Denormalize(std::vector<std::tuple<double, double, double>> data) const;
+};
+
 class NFSystem {
    private:
     std::vector<Rule> rules;
     double normalizer;
-    double min_pos, max_pos, min_angle, max_angle, min_label, max_label;
 
    public:
     NFSystem() = default;
-    NFSystem(unsigned rule_num, double initial_rule_weight, double min_pox, double max_pos, double min_angle, double max_angle, double min_label, double max_label);
+    NFSystem(unsigned rule_num, double initial_rule_weight);
     double GetNormalizer(){return normalizer;}
     std::vector<Rule>& GetRules() { return rules; }
     double CalcOutput(const std::vector<double>& inputs);
@@ -82,29 +82,29 @@ class NFTrainer {
    private:
     NFSystem nn;
     NFTrainParams params;
-    TrainingData training_data;
+    std::vector<std::tuple<double, double, double>>  training_data;
     std::vector<std::tuple<double, double, double>> validation_data;
     void TrainOneIterate(const std::vector<double>& inputs, double label, unsigned& iterate_count);
     double CalcError(const std::vector<double>& inputs, double label);
 
-   public:
+public:
     unsigned epoch_count;
 
     NFTrainer() = default;
     NFTrainer(const NFTrainParams& params);
-    void Initialize(const TrainingDataParams& data_params);
+    bool Initialize(const std::string training_data_path);
     void TrainOneEpoch();
     double CalcTrainingError();
     double CalcValidationError();
-    bool HasTrainingDataReady();
     bool ForceStopTraining();
     double GetErrorThreshold() {return params.error_threshold;}
+    std::vector<std::tuple<double, double, double>> GetTrainingData(){return training_data; }
     NFSystem GetNN() {return nn;}
+    void NormalizeData(const PendulumDataNormalizer *normalizer);
 };
 
 double sgn (double val);
 
-TrainingData initialize_data(const TrainingDataParams& data_params);
 std::vector<double> linspace(double start, double end, unsigned total_num);
 
 #endif

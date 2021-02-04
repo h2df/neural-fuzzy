@@ -44,6 +44,7 @@ private:
     QVector<double> training_errors;
     QVector<double> epochs;
     NFTrainer trainer;
+    PendulumDataNormalizer normalizer;
 
     void plot();
     void clearPlot();
