@@ -25,6 +25,7 @@ public:
 private slots:
     void on_training_btn_clicked();
     void onTrainNF(double, double, unsigned);
+    void onTestNF(double);
     void onWarning(std::string);
     void onBeyondEpochLimit(unsigned);
     void on_ld_training_data_btn_clicked();

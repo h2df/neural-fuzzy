@@ -111,6 +111,7 @@ bool NFTrainer::Initialize(const std::string training_data_path) {
             training_data.push_back(NFDataSample{{pos_input, angle_input}, label});
         }
     }
+    training_f.close();
 
     if (params.shuffle) {
         std::random_shuffle(training_data.begin(), training_data.end());
@@ -166,6 +167,12 @@ double NFTester::CalcAvgError(std::vector<NFDataSample> data)
     double total_error = 0;
     for (auto sample: data) {
         double error = CalcError(sample.input, sample.output);
+
+        //this will be changed later
+        if (error != error) {
+            continue;
+        }
+        //
         total_error += error;
     }
     return total_error/data.size();

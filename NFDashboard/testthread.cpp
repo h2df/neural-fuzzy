@@ -6,7 +6,18 @@ TestThread::TestThread(QObject *parent, NFSystem *nf, const std::string test_dat
 }
 
 void TestThread::run(){
-    auto i = nf->GetRulesReport();
-    auto j = test_data_path;
-    return;
+    std::ifstream test_f(test_data_path);
+    if (!test_f.is_open()) {
+        emit warning("Invalid test data path: " + test_data_path);
+    }
+    std::vector<NFDataSample> test_data;
+    double pos, angle, output;
+    while (test_f >> pos >> angle >> output) {
+        test_data.push_back(NFDataSample{{pos, angle}, output});
+    }
+    test_f.close();
+    NFTester tester(nf);
+    double error = tester.CalcAvgError(test_data);
+    emit(test_nf(error));
 }
+

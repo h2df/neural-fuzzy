@@ -31,10 +31,8 @@ NFDash::NFDash(QWidget *parent)
 NFDash::~NFDash()
 {
     delete ui;
-    delete nf;
     delete train_thread;
     delete test_thread;
-    delete normalizer;
 }
 
 void NFDash::on_training_btn_clicked()
@@ -93,6 +91,11 @@ void NFDash::onTrainNF(double training_error, double validation_error, unsigned 
     validation_errors.append(validation_error);
     epochs.append(double (epoch_count));
     plot();
+}
+
+void NFDash::onTestNF(double error)
+{
+   ui->error_lb->setText("Test Error: " + QString::number(error));
 }
 
 void NFDash::onWarning(std::string warning){
@@ -169,5 +172,7 @@ void NFDash::on_test_btn_clicked()
 {
     std::string tet_data_path = ui->test_data_path_lb->text().toStdString();
     test_thread = new TestThread(this, nf, tet_data_path);
+    connect(test_thread, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
+    connect(test_thread, SIGNAL(test_nf(double)), this, SLOT(onTestNF(double)));
     test_thread->start();
 }
