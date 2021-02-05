@@ -21,13 +21,14 @@ void Rule::SetWeight(double weight_val) {
     weight = weight_val;
 }
 
-double Rule::CalcOutput(const std::vector<double>& inputs) {
-    double output = 1.0;
-    for (unsigned i = 0; i < inputs.size(); i++) {
-        double input = inputs[i];
-        MemberFunc& func = member_funcs[i];
-        output *= func.CalcOutput(input);
-    }
+double Rule::CalcOutput(const NFDataInput input) {
+    MemberFunc& pos_Func = member_funcs[0];
+    double pos_output = pos_Func.CalcOutput(input.pos);
+    MemberFunc& angle_func = member_funcs[1];
+    double angle_output = angle_func.CalcOutput(input.angle);
+
+    double output = pos_output * angle_output;
+
     last_output = output;
     return output;
 }
@@ -57,11 +58,11 @@ NFSystem::NFSystem(unsigned rule_num, double initial_rule_weight) {
     }
 }
 
-double NFSystem::CalcOutput(const std::vector<double>& inputs) {
+double NFSystem::CalcOutput(const NFDataInput input) {
     double weighted_sum = 0;
     normalizer = 0;
     for (Rule& rule : rules) {
-        double rule_output = rule.CalcOutput(inputs);
+        double rule_output = rule.CalcOutput(input);
         weighted_sum += rule.GetWeight() * rule_output;
         normalizer += rule_output;
     }
@@ -105,9 +106,9 @@ bool NFTrainer::Initialize(const std::string training_data_path) {
     while (training_f >> pos_input >> angle_input >> label) {
         count = (count + 1) % 10;
         if (count > (1 - params.validation_factor) * 10) {//e.g. if user set validation_factor to be 0.2, every 2 out of 10 samples will be used for validation
-            validation_data.push_back(std::tuple<double, double, double>(pos_input, angle_input, label));
+            validation_data.push_back(NFDataSample{{pos_input, angle_input}, label});
         } else {
-            training_data.push_back(std::tuple<double, double, double>(pos_input, angle_input, label));
+            training_data.push_back(NFDataSample{{pos_input, angle_input}, label});
         }
     }
 
@@ -120,21 +121,22 @@ bool NFTrainer::Initialize(const std::string training_data_path) {
 }
 
 
-void NFTrainer::TrainOneIterate(const std::vector<double>& inputs, double label, unsigned& iterate_count) {
-    double output = nf->CalcOutput(inputs);  //step 3 in paper
+void NFTrainer::TrainOneIterate(const NFDataInput input, double label, unsigned& iterate_count) {
+    double output = nf->CalcOutput(input);  //step 3 in paper
     for (Rule& rule : nf->GetRules()) {
         double new_weight = rule.GetWeight() - params.weight_learning_rate * (rule.GetLastOutput() / nf->GetNormalizer()) * (output - label);
         rule.SetWeight(new_weight);  //step 4 in paper
     }
-    output = nf->CalcOutput(inputs);  //step 5 in paper
+    output = nf->CalcOutput(input);  //step 5 in paper
     for (Rule& rule : nf->GetRules()) {
         if (rule.GetLastOutput() == 0) {
             continue;  //inactive rules should be skipped in this epoch's backpropagation
         }
-        for (MemberFunc& func : rule.GetMemberFuncs()) {
+        for (unsigned j = 0; j < rule.GetMemberFuncs().size(); j++) {
+            MemberFunc& func = rule.GetMemberFuncs()[j];
             if((iterate_count % params.center_move_iterate)== 0){
                 //std::cout << "\n\t\tAdjusting the centre parameter..." << std::endl;
-                double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / nf->GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (2 * sgn(inputs[0] - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
+                double new_center = func.GetCenter() - params.func_center_learning_rate * (rule.GetLastOutput() / nf->GetNormalizer()) * (output - label) * (rule.GetWeight() - output) * (2 * sgn(j == 0? input.pos : input.angle - func.GetCenter())) / (func.GetLastOutput() * func.GetWidth());
                 func.SetCenter(new_center);
             }
 
@@ -148,12 +150,7 @@ void NFTrainer::TrainOneIterate(const std::vector<double>& inputs, double label,
 void NFTrainer::TrainOneEpoch() {
     unsigned iterate_count = 0;
     for (auto sample : training_data) {
-        std::vector<double> inputs;
-        inputs.reserve(2);
-        inputs.emplace_back(std::get<0>(sample));
-        inputs.emplace_back(std::get<1>(sample));
-        double label = std::get<2>(sample);
-        TrainOneIterate(inputs, label, iterate_count);
+        TrainOneIterate(sample.input, sample.output, iterate_count);
     }
     ++epoch_count;
 }
@@ -164,23 +161,18 @@ bool NFTrainer::ForceStopTraining() {
 
 NFTester::NFTester(NFSystem *nf):nf(nf){}
 
-double NFTester::CalcAvgError(std::vector<std::tuple<double, double, double> > data)
+double NFTester::CalcAvgError(std::vector<NFDataSample> data)
 {
     double total_error = 0;
     for (auto sample: data) {
-        std::vector<double> inputs;
-        inputs.reserve(2);
-        inputs.emplace_back(std::get<0>(sample));
-        inputs.emplace_back(std::get<1>(sample));
-        double label = std::get<2>(sample);
-        double error = CalcError(inputs, label);
+        double error = CalcError(sample.input, sample.output);
         total_error += error;
     }
     return total_error/data.size();
 }
 
-double NFTester::CalcError(std::vector<double> inputs, double label){
-    double output = nf->CalcOutput(inputs);
+double NFTester::CalcError(NFDataInput input, double label){
+    double output = nf->CalcOutput(input);
     return pow(output - label, 2);
 }
 
@@ -200,7 +192,7 @@ double sgn(double val) {
 }
 
 
-void PendulumDataNormalizer::Initialize(std::vector<std::tuple<double, double, double>> data)
+void PendulumDataNormalizer::Initialize(std::vector<NFDataSample> data)
 {
 
     max_pos = std::numeric_limits<double>::min();
@@ -211,9 +203,9 @@ void PendulumDataNormalizer::Initialize(std::vector<std::tuple<double, double, d
     min_output = std::numeric_limits<double>::max();
 
     for (auto sample : data) {
-        double pos_input = std::get<0>(sample);
-        double angle_input = std::get<1>(sample);
-        double output = std::get<2>(sample);
+        double pos_input = sample.input.pos;
+        double angle_input = sample.input.angle;
+        double output = sample.output;
 
         if (pos_input > max_pos) {
             max_pos = pos_input;
@@ -236,32 +228,26 @@ void PendulumDataNormalizer::Initialize(std::vector<std::tuple<double, double, d
     }
 }
 
-std::vector<std::tuple<double, double, double>> PendulumDataNormalizer::Normalize(const std::vector<std::tuple<double, double, double>> data) const
+std::vector<NFDataSample> PendulumDataNormalizer::Normalize(const std::vector<NFDataSample> data) const
 {
-    auto result = std::vector<std::tuple<double,double,double>>(data.size());
+    auto result = std::vector<NFDataSample>(data.size());
     for (auto sample : data) {
-        double pos = std::get<0>(sample);
-        pos = (pos - min_pos) / (max_pos - min_pos);
-        double angle = std::get<1>(sample);
-        angle = (angle - min_angle) / (max_angle - min_angle);
-        double output = std::get<2>(sample);
-        output = (output - min_output) / (max_output - min_output);
-        result.emplace_back(std::tuple<double, double, double>(pos, angle, output));
+        double pos = (sample.input.pos - min_pos) / (max_pos - min_pos);
+        double angle = (sample.input.angle - min_angle) / (max_angle - min_angle);
+        double output = (sample.output - min_output) / (max_output - min_output);
+        result.emplace_back(NFDataSample{{pos, angle}, output});
     }
     return result;
 }
 
-std::vector<std::tuple<double, double, double>> PendulumDataNormalizer::Denormalize(const std::vector<std::tuple<double, double, double>> data) const
+std::vector<NFDataSample> PendulumDataNormalizer::Denormalize(const std::vector<NFDataSample> data) const
 {
-    auto result = std::vector<std::tuple<double,double,double>>(data.size());
+    auto result = std::vector<NFDataSample>(data.size());
     for (auto sample : data) {
-        double pos = std::get<0>(sample);
-        pos = min_pos + pos * (max_pos - min_pos);
-        double angle = std::get<1>(sample);
-        angle = min_angle + angle * (max_angle - min_angle);
-        double output = std::get<2>(sample);
-        output = min_output + output * (max_output - min_output);
-        result.emplace_back(std::tuple<double, double, double>(pos, angle, output));
+        double pos = min_pos + sample.input.pos * (max_pos - min_pos);
+        double angle = min_angle + sample.input.angle * (max_angle - min_angle);
+        double output = min_output + sample.output * (max_output - min_output);
+        result.emplace_back(NFDataSample{{pos, angle}, output});
     }
     return result;
 }
