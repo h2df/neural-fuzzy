@@ -171,7 +171,7 @@ void NFDash::on_shuffle_checkbox_stateChanged(int checked)
 void NFDash::on_test_btn_clicked()
 {
     std::string tet_data_path = ui->test_data_path_lb->text().toStdString();
-    test_thread = new TestThread(this, nf, tet_data_path);
+    test_thread = new TestThread(this, nf, normalizer, tet_data_path);
     connect(test_thread, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
     connect(test_thread, SIGNAL(test_nf(double)), this, SLOT(onTestNF(double)));
     test_thread->start();

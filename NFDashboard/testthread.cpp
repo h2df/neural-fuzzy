@@ -1,7 +1,7 @@
 #include "testthread.h"
 
-TestThread::TestThread(QObject *parent, NFSystem *nf, const std::string test_data_path) :QThread(parent),
-    nf(nf), test_data_path(test_data_path)
+TestThread::TestThread(QObject *parent, NFSystem *nf, PendulumDataNormalizer *normalizer,const std::string test_data_path) :QThread(parent),
+    nf(nf), normalizer(normalizer), test_data_path(test_data_path)
 {
 }
 
@@ -16,6 +16,7 @@ void TestThread::run(){
         test_data.push_back(NFDataSample{{pos, angle}, output});
     }
     test_f.close();
+    test_data = normalizer->Normalize(test_data);
     NFTester tester(nf);
     double error = tester.CalcAvgError(test_data);
     emit(test_nf(error));

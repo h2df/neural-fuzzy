@@ -8,9 +8,10 @@ class TestThread : public QThread
 {
     Q_OBJECT
     NFSystem *nf;
+    PendulumDataNormalizer *normalizer;
     std::string test_data_path;
 public:
-    explicit TestThread(QObject *parent, NFSystem *nf, std::string test_data_path);
+    explicit TestThread(QObject *parent, NFSystem *nf, PendulumDataNormalizer *normalizer,std::string test_data_path);
     void run() override;
 signals:
     void warning(std::string);

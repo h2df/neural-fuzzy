@@ -167,12 +167,6 @@ double NFTester::CalcAvgError(std::vector<NFDataSample> data)
     double total_error = 0;
     for (auto sample: data) {
         double error = CalcError(sample.input, sample.output);
-
-        //this will be changed later
-        if (error != error) {
-            continue;
-        }
-        //
         total_error += error;
     }
     return total_error/data.size();
