@@ -40,6 +40,11 @@ void TrainThread::run(){
 
         emit train_nf(training_error, validation_error, trainer.epoch_count);
 
+        if ((training_error != training_error) || (validation_error != validation_error)) {
+            emit warning("Training has gone wrong. Try adjust the parameters (e.g. set a bigger Center Learning Iterate");
+            return;
+        }
+
     } while (validation_error > trainer.GetErrorThreshold());
 
     emit train_success(training_error, validation_error, trainer.epoch_count, nf->GetRulesReport());

@@ -19,6 +19,10 @@ void TestThread::run(){
     test_data = normalizer->Normalize(test_data);
     NFTester tester(nf);
     double error = tester.CalcAvgError(test_data);
+    if (error != error){
+        emit warning("Some test data cannot be handled by the system... Try a better training strategy.");
+        return;
+    }
     emit(test_nf(error));
 }
 

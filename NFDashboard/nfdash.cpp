@@ -8,7 +8,6 @@ NFDash::NFDash(QWidget *parent)
 {
     qRegisterMetaType<std::string>();
     ui->setupUi(this);
-    ui->warning_lb->setStyleSheet("color: red");
     ui->plot->addGraph();//for training error
     ui->plot->addGraph();//for validation error
     ui->plot->graph(0)->setScatterStyle(QCPScatterStyle::ssPlus);
@@ -81,7 +80,7 @@ void NFDash::on_training_btn_clicked()
     connect(train_thread, SIGNAL(train_nf(double, double, unsigned)), this, SLOT(onTrainNF(double, double, unsigned)));
     connect(train_thread, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
     connect(train_thread, SIGNAL(beyond_epoch_limit(unsigned)), this, SLOT(onBeyondEpochLimit(unsigned)));
-    connect(train_thread, SIGNAL(train_success(double, double, unsigned, std::string)), this,  SLOT(onTrainSuccess(double, double, unsigned, std::string)));
+    connect(train_thread, SIGNAL(train_success(double, double, unsigned, std::string)), this,  SLOT(onTrainingEnds(double, double, unsigned, std::string)));
     this->train_thread->start();
 }
 
@@ -99,8 +98,7 @@ void NFDash::onTestNF(double error)
 }
 
 void NFDash::onWarning(std::string warning){
-    this->ui->warning_lb->setText(QString::fromStdString(warning));
-    QTimer::singleShot(2000, [&](){ ui->warning_lb->setText("   ");});
+    QMessageBox::warning(this, "Something is wrong...", QString::fromStdString(warning));
 }
 
 void NFDash::onBeyondEpochLimit(unsigned epoch)
@@ -154,7 +152,7 @@ void NFDash::scaleBackPlot()
     ui->plot->update();
 }
 
-void NFDash::onTrainSuccess(double training_error, double validation_error, unsigned epoch_count, std::string report)
+void NFDash::onTrainingEnds(double training_error, double validation_error, unsigned epoch_count, std::string report)
 {
     scaleBackPlot();
     ui->error_lb->setText("Successfully trained after " + QString::number(epoch_count) + " epochs. The average error on training data is " + QString::number(training_error) + " and the average error on validation data is " + QString::number(validation_error));

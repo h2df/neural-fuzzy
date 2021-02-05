@@ -7,6 +7,7 @@
 #include "algorithm.h"
 #include <QtDebug>
 #include <QFileDialog>
+#include <QMessageBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class NFDash; }
@@ -29,7 +30,7 @@ private slots:
     void onWarning(std::string);
     void onBeyondEpochLimit(unsigned);
     void on_ld_training_data_btn_clicked();
-    void onTrainSuccess(double, double, unsigned, std::string);
+    void onTrainingEnds(double, double, unsigned, std::string);
 
     void on_shuffle_checkbox_stateChanged(int arg1);
 
