@@ -32,6 +32,8 @@ NFDash::~NFDash()
     delete ui;
     delete train_thread;
     delete test_thread;
+    delete normalizer;
+    delete nf;
 }
 
 void NFDash::on_training_btn_clicked()
@@ -76,6 +78,7 @@ void NFDash::on_training_btn_clicked()
 
     std::string training_data_path = ui->training_data_path_lb->text().toStdString();
 
+    normalizer = new PendulumDataNormalizer();
     train_thread = new TrainThread(this, nf, training_params, normalizer, training_data_path);
     connect(train_thread, SIGNAL(train_nf(double, double, unsigned)), this, SLOT(onTrainNF(double, double, unsigned)));
     connect(train_thread, SIGNAL(warning(std::string)), this, SLOT(onWarning(std::string)));
