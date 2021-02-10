@@ -265,7 +265,7 @@
         <number>6</number>
        </property>
        <property name="minimum">
-        <double>0.000100000000000</double>
+        <double>0.000001000000000</double>
        </property>
        <property name="maximum">
         <double>1.000000000000000</double>
@@ -295,7 +295,7 @@
      <item row="10" column="1">
       <widget class="QSpinBox" name="max_epoch_spin">
        <property name="maximum">
-        <number>500</number>
+        <number>1000</number>
        </property>
        <property name="singleStep">
         <number>10</number>
